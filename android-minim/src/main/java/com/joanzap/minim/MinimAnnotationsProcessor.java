@@ -45,7 +45,8 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
 
                 // Create the output file
                 String newElementName = elementName + "Api";
-                JavaFileObject classFile = processingEnv.getFiler().createSourceFile(newElementName, minimServiceElement);
+                String targetFile = elementPackage + "." + newElementName;
+                JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
                 logger.note(classFile.toUri().toString());
                 Writer out = classFile.openWriter();
                 JavaWriter writer = new JavaWriter(out);

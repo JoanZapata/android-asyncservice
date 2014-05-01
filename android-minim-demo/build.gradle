@@ -3,10 +3,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath 'com.uphyca.gradle:gradle-android-apt-plugin:0.9.+'
         classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 apply plugin: 'android'
+apply plugin: 'android-apt'
 
 repositories {
     mavenCentral()
@@ -33,5 +35,6 @@ android {
 dependencies {
     compile 'com.android.support:appcompat-v7:19.+'
     compile project(':android-minim')
+    apt project(':android-minim')
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
