@@ -45,7 +45,7 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
 
                 // Create the output file
                 String newElementName = elementName + "Api";
-                String targetFile = elementPackage + "." + newElementName;
+                String targetFile = getFullName(elementPackage, newElementName);
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
                 logger.note(classFile.toUri().toString());
                 Writer out = classFile.openWriter();
@@ -100,13 +100,14 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
     private void createDelegateMethod(JavaWriter classWriter, ExecutableElement method) throws IOException {
 
         // Start the mimic method
-        classWriter.beginMethod(
-                "void",
-                method.getSimpleName().toString(),
-                method.getModifiers(),
-                formatParameters(method, true), null)
+        classWriter.emitEmptyLine()
+                .beginMethod(
+                        "void",
+                        method.getSimpleName().toString(),
+                        method.getModifiers(),
+                        formatParameters(method, true), null)
 
-                // Delegate the call to the user method
+                        // Delegate the call to the user method
                 .emitStatement("internal.%s(%s)",
                         method.getSimpleName(),
                         formatParametersForCall(method))

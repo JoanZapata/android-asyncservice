@@ -3,6 +3,7 @@ package com.joanzap.minim.utils;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.VariableElement;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +14,16 @@ public class Utils {
 
     /** Get the package name of an element */
     public static String getElementPackageName(Element minimServiceElement) {
-        Element parentElement = minimServiceElement.getEnclosingElement();
-        if (parentElement == null) return "";
-        if (!isPackage(parentElement)) return getElementPackageName(parentElement);
+        // Iterates until we found a package or a null parent to start with
+        Element parent = minimServiceElement.getEnclosingElement();
+        if (!isPackage(minimServiceElement) && parent != null) return getElementPackageName(parent);
 
-        Element topParentElement = parentElement.getEnclosingElement();
-        if (topParentElement == null) return parentElement.getSimpleName().toString();
-        else return getElementPackageName(topParentElement) + parentElement.getSimpleName().toString();
+        // If it's a package, return full name
+        if (isPackage(minimServiceElement))
+            return ((PackageElement) minimServiceElement).getQualifiedName().toString();
+
+        // Else, it means the parent is null, return empty string
+        return "";
     }
 
     /** Returns true if the given element is a package */
@@ -57,5 +61,23 @@ public class Utils {
         }
         if (builder.length() > 0) builder.substring(0, builder.length() - 1);
         return builder.toString();
+    }
+
+    /**
+     * Return the qualified name of a class given its package name and class name
+     * @param packageName Example "com.foo"
+     * @param className   Example "Bar"
+     * @return Example "com.foo.Bar"
+     */
+    public static String getFullName(String packageName, String className) {
+        if (isNullOrEmpty(packageName)) return className;
+        else return packageName + "." + className;
+    }
+
+    /**
+     * Return true if the given string is null or empty.
+     */
+    private static boolean isNullOrEmpty(String elementPackage) {
+        return elementPackage == null || elementPackage.isEmpty();
     }
 }
