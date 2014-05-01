@@ -44,7 +44,7 @@ public class Utils {
     public static List<String> formatParameters(ExecutableElement method, boolean useFinal) {
         List<String> out = new ArrayList<String>();
         for (VariableElement var : method.getParameters()) {
-            out.add((useFinal ? "final " : "") + var.getKind().toString());
+            out.add((useFinal ? "final " : "") + var.asType());
             out.add(var.getSimpleName().toString());
         }
         return out;
