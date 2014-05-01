@@ -8,9 +8,8 @@ import com.joanzap.minim.demo.event.UserEvent;
 public class DemoService {
 
     @Cached
-    public UserEvent getUser() {
-        return new UserEvent("Joan", 25);
+    public UserEvent getUser(Long id) {
+        return new UserEvent(id, "Joan", 25);
     }
-
 
 }

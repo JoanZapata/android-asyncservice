@@ -37,10 +37,10 @@ public class Utils {
      * Get the method parameters in the form of
      * "type1", "name1", "type2", "name2", etc...
      */
-    public static List<String> formatParameters(ExecutableElement method) {
+    public static List<String> formatParameters(ExecutableElement method, boolean useFinal) {
         List<String> out = new ArrayList<String>();
         for (VariableElement var : method.getParameters()) {
-            out.add(var.getKind().toString());
+            out.add((useFinal ? "final " : "") + var.getKind().toString());
             out.add(var.getSimpleName().toString());
         }
         return out;

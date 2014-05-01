@@ -104,7 +104,7 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
                 "void",
                 method.getSimpleName().toString(),
                 method.getModifiers(),
-                formatParameters(method), null)
+                formatParameters(method, true), null)
 
                 // Delegate the call to the user method
                 .emitStatement("internal.%s(%s)",
