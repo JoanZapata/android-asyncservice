@@ -1,6 +1,7 @@
 package com.joanzap.minim;
 
 import com.joanzap.minim.api.annotation.MinimService;
+import com.joanzap.minim.internal.Minim;
 import com.joanzap.minim.utils.Logger;
 import com.squareup.javawriter.JavaWriter;
 
@@ -41,16 +42,16 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
 
                 // Get name and package
                 String elementName = minimServiceElement.getSimpleName().toString();
-                String elementPackage = getElementPackageName(minimServiceElement);
-
+                String minimPackage = Minim.class.getPackage().getName();
                 // Create the output file
                 String newElementName = elementName + "Api";
-                String targetFile = getFullName(elementPackage, newElementName);
+
+                String targetFile = getFullName(minimPackage, newElementName);
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
                 logger.note(classFile.toUri().toString());
                 Writer out = classFile.openWriter();
                 JavaWriter writer = new JavaWriter(out);
-                JavaWriter classWriter = writer.emitPackage(elementPackage)
+                JavaWriter classWriter = writer.emitPackage(minimPackage)
                         .emitImports(
                                 minimServiceElement.toString(),
                                 "android.content.Context")
@@ -108,7 +109,7 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
                         formatParameters(method, true), null)
 
                         // Delegate the call to the user method
-                .emitStatement("internal.%s(%s)",
+                .emitStatement("Minim.dispatch(internal.%s(%s))",
                         method.getSimpleName(),
                         formatParametersForCall(method))
 
