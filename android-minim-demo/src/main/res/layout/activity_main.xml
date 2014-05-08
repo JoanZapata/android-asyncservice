@@ -9,7 +9,7 @@
     tools:context="com.joanzap.minim.demo.MainActivity">
 
     <TextView
-        android:text="@string/hello_world"
+        android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

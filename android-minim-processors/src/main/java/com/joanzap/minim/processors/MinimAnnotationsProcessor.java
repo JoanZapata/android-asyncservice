@@ -1,8 +1,9 @@
-package com.joanzap.minim;
+package com.joanzap.minim.processors;
 
 import com.joanzap.minim.api.annotation.MinimService;
 import com.joanzap.minim.internal.Minim;
-import com.joanzap.minim.utils.Logger;
+import com.joanzap.minim.processors.utils.Logger;
+import com.joanzap.minim.processors.utils.Utils;
 import com.squareup.javawriter.JavaWriter;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -18,13 +19,14 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
 
-import static com.joanzap.minim.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
 @SupportedAnnotationTypes({"com.joanzap.minim.api.annotation.MinimService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class MinimAnnotationsProcessor extends AbstractProcessor {
+
+    public static final String GENERATED_CLASS_SUFFIX = "Impl";
 
     @Override
     public boolean process(Set<? extends TypeElement> typeElements, RoundEnvironment roundEnvironment) {
@@ -44,9 +46,9 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
                 String elementName = minimServiceElement.getSimpleName().toString();
                 String minimPackage = Minim.class.getPackage().getName();
                 // Create the output file
-                String newElementName = elementName + "Api";
+                String newElementName = elementName + GENERATED_CLASS_SUFFIX;
 
-                String targetFile = getFullName(minimPackage, newElementName);
+                String targetFile = Utils.getFullName(minimPackage, newElementName);
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
                 logger.note(classFile.toUri().toString());
                 Writer out = classFile.openWriter();
@@ -56,7 +58,7 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
                                 minimServiceElement.toString(),
                                 "android.content.Context")
                         .emitEmptyLine()
-                        .beginType(newElementName, "class", of(PUBLIC, FINAL));
+                        .beginType(newElementName, "class", of(PUBLIC, FINAL), minimServiceElement.toString());
 
                 // Create a static holder for the instance
                 classWriter.emitEmptyLine()
@@ -84,7 +86,7 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
 
                 // Manage each method
                 for (Element element : minimServiceElement.getEnclosedElements())
-                    if (isPublicMethod(element))
+                    if (Utils.isPublicMethod(element))
                         createDelegateMethod(classWriter, (ExecutableElement) element);
 
                 classWriter.endType();
@@ -103,16 +105,17 @@ public class MinimAnnotationsProcessor extends AbstractProcessor {
         // Start the mimic method
         classWriter.emitEmptyLine()
                 .beginMethod(
-                        "void",
+                        method.getReturnType().toString(),
                         method.getSimpleName().toString(),
                         method.getModifiers(),
-                        formatParameters(method, true), null)
+                        Utils.formatParameters(method, true), null)
 
                         // Delegate the call to the user method
                 .emitStatement("Minim.dispatch(internal.%s(%s))",
                         method.getSimpleName(),
-                        formatParametersForCall(method))
+                        Utils.formatParametersForCall(method))
 
+                .emitStatement("return null")
                 .endMethod();
 
     }

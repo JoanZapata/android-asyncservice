@@ -1,4 +1,4 @@
-package com.joanzap.minim.utils;
+package com.joanzap.minim.processors.utils;
 
 import javax.annotation.processing.Messager;
 

@@ -14,7 +14,7 @@ public class MainActivityInjector extends Injector<MainActivity> {
     @Override
     public void inject(MainActivity injectable) {
         // Inject all @InjectService
-        injectable.service = DemoServiceApi.get(injectable);
+        injectable.service = DemoServiceImpl.get(injectable);
     }
 
     @Override

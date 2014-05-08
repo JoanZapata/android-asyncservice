@@ -1,6 +1,17 @@
-apply plugin: 'java'
+apply plugin: 'android-library'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.squareup:javawriter:2.5.+'
+    compile 'com.snappydb:snappydb-api:0.2.+'
+    compile project(':android-minim-processors')
+}
+
+android {
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 19
+    }
+
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
 }

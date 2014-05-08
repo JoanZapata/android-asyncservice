@@ -3,12 +3,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.uphyca.gradle:gradle-android-apt-plugin:0.9.+'
         classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 apply plugin: 'android'
-apply plugin: 'android-apt'
 
 repositories {
     mavenCentral()
@@ -16,10 +14,10 @@ repositories {
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.2"
+    buildToolsVersion "19.0.3"
 
     defaultConfig {
-        minSdkVersion 8
+        minSdkVersion 9
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
@@ -35,6 +33,6 @@ android {
 dependencies {
     compile 'com.android.support:appcompat-v7:19.+'
     compile project(':android-minim')
-    apt project(':android-minim')
+    compile project(':android-minim-processors')
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

@@ -1,4 +1,4 @@
-package com.joanzap.minim.utils;
+package com.joanzap.minim.processors.utils;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
