@@ -1,6 +1,7 @@
 package com.joanzap.minim.processors.utils;
 
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -11,6 +12,7 @@ import javax.lang.model.type.DeclaredType;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static javax.lang.model.element.Modifier.PUBLIC;
 
@@ -123,4 +125,23 @@ public class Utils {
     public static void assertThat(boolean condition, String errorMessage) {
         if (!condition) throw new IllegalArgumentException(errorMessage);
     }
+
+    public static AnnotationMirror getAnnotation(ExecutableElement element, Class<? extends Annotation> annotationClass) {
+        for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+            if (annotationMirror.getAnnotationType().toString().equals(annotationClass.getName())) {
+                return annotationMirror;
+            }
+        }
+        return null;
+    }
+
+    public static <T> T getAnnotationValue(AnnotationMirror annotationMirror, String key, Class<T> returnType) {
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().toString().equals(key)) {
+                return (T) entry.getValue().getValue();
+            }
+        }
+        return null;
+    }
+
 }

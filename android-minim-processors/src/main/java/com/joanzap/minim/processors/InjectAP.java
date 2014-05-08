@@ -14,10 +14,12 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
@@ -56,6 +58,7 @@ public class InjectAP extends AbstractProcessor {
 
     }
 
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
     private void manageType(TypeElement enclosingElement, Logger logger) {
 
         // Make sure we don't process twice the same type
@@ -103,10 +106,21 @@ public class InjectAP extends AbstractProcessor {
             for (Element responseReceiver : responseReceivers) {
                 ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
                 List<? extends VariableElement> parameters = annotatedMethod.getParameters();
-                assertThat(parameters.size() == 1, "@InjectResponse annotated methods should have exactly one parameter.");
-                String parameterType = parameters.get(0).asType().toString();
-                writer.beginControlFlow("if (event instanceof %s)", parameterType)
-                        .emitStatement("target.%s((%s) event)", annotatedMethod.getSimpleName(), parameterType)
+                assertThat(parameters.size() <= 1, "@InjectResponse annotated methods should have exactly one parameter.");
+
+                // Define event type given parameter or @InjectResponse value
+                String eventType;
+                if (parameters.size() == 1) {
+                    eventType = parameters.get(0).asType().toString();
+                } else {
+                    AnnotationMirror annotation = getAnnotation(annotatedMethod, InjectResponse.class);
+                    DeclaredType parameterTypeClass = getAnnotationValue(annotation, "value", DeclaredType.class);
+                    assertThat(parameterTypeClass != null, "@InjectResponse on a no-arg method should have a value.");
+                    eventType = parameterTypeClass.toString();
+                }
+
+                writer.beginControlFlow("if (event instanceof %s)", eventType)
+                        .emitStatement("target.%s((%s) event)", annotatedMethod.getSimpleName(), eventType)
                         .endControlFlow();
             }
 

@@ -11,6 +11,7 @@ import com.joanzap.minim.demo.event.UserEvent;
 
 public class MainActivity extends ActionBarActivity {
 
+    public static final String TAG = "MainActivity";
     @InjectService
     public DemoService service;
 
@@ -32,8 +33,12 @@ public class MainActivity extends ActionBarActivity {
 
     @InjectResponse
     public void onUserFetched(UserEvent e) {
-        Log.i("MainActivity", "User fetched !");
         text.setText(e.name + " " + e.age);
+    }
+
+    @InjectResponse
+    public void onUserFetched() {
+        Log.i(TAG, "User fetched !");
     }
 
 }
