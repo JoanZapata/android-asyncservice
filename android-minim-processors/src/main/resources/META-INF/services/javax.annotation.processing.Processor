@@ -1,1 +1,2 @@
-com.joanzap.minim.processors.MinimAnnotationsProcessor
+com.joanzap.minim.processors.MinimServiceAP
+com.joanzap.minim.processors.InjectAP

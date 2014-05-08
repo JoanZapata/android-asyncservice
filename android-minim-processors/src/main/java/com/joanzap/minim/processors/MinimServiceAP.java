@@ -1,7 +1,7 @@
 package com.joanzap.minim.processors;
 
 import com.joanzap.minim.api.annotation.MinimService;
-import com.joanzap.minim.internal.Minim;
+import com.joanzap.minim.api.internal.Minim;
 import com.joanzap.minim.processors.utils.Logger;
 import com.joanzap.minim.processors.utils.Utils;
 import com.squareup.javawriter.JavaWriter;
@@ -24,7 +24,7 @@ import static javax.lang.model.element.Modifier.*;
 
 @SupportedAnnotationTypes({"com.joanzap.minim.api.annotation.MinimService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-public class MinimAnnotationsProcessor extends AbstractProcessor {
+public class MinimServiceAP extends AbstractProcessor {
 
     public static final String GENERATED_CLASS_SUFFIX = "Impl";
 

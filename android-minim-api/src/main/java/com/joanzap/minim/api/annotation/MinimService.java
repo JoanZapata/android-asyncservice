@@ -1,7 +1,7 @@
 package com.joanzap.minim.api.annotation;
 
 import com.joanzap.minim.api.BaseCache;
-import com.joanzap.minim.internal.DefaultCache;
+import com.joanzap.minim.api.internal.DefaultCache;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

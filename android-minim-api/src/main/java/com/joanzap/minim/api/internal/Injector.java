@@ -1,10 +1,10 @@
-package com.joanzap.minim.internal;
+package com.joanzap.minim.api.internal;
 
 import com.joanzap.minim.api.BaseEvent;
 
 import java.lang.ref.WeakReference;
 
-abstract class Injector<T> {
+public abstract class Injector<T> {
 
     protected WeakReference<T> target;
 
@@ -32,5 +32,5 @@ abstract class Injector<T> {
 
     protected abstract void inject(T injectable);
 
-    abstract void dispatch(T target, BaseEvent event);
+    protected abstract void dispatch(T target, BaseEvent event);
 }

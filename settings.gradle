@@ -1,1 +1,1 @@
-include ':android-minim-demo', ':android-minim', ':android-minim-processors'
+include ':android-minim-demo', ':android-minim', ':android-minim-processors', ':android-minim-api'

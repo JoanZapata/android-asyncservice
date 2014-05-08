@@ -33,6 +33,7 @@ android {
 dependencies {
     compile 'com.android.support:appcompat-v7:19.+'
     compile project(':android-minim')
+    compile project(':android-minim-api')
     compile project(':android-minim-processors')
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

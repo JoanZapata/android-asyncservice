@@ -2,7 +2,7 @@ apply plugin: 'android-library'
 
 dependencies {
     compile 'com.snappydb:snappydb-api:0.2.+'
-    compile project(':android-minim-processors')
+    compile project(':android-minim-api')
 }
 
 android {

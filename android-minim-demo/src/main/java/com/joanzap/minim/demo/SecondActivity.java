@@ -6,10 +6,10 @@ import android.util.Log;
 import android.widget.TextView;
 import com.joanzap.minim.api.annotation.InjectResponse;
 import com.joanzap.minim.api.annotation.InjectService;
-import com.joanzap.minim.demo.event.UserEvent;
 import com.joanzap.minim.api.internal.Minim;
+import com.joanzap.minim.demo.event.UserEvent;
 
-public class MainActivity extends ActionBarActivity {
+public class SecondActivity extends ActionBarActivity {
 
     @InjectService
     public DemoService service;
@@ -26,7 +26,7 @@ public class MainActivity extends ActionBarActivity {
 
     @InjectResponse
     public void onUserFetched(UserEvent e) {
-        Log.i("MainActivity", "User fetched !");
+        Log.i("SecondActivity", "User fetched !");
         text.setText(e.name + " " + e.age);
     }
 

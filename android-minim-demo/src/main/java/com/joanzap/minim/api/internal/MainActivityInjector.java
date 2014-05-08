@@ -1,4 +1,4 @@
-package com.joanzap.minim.internal;
+package com.joanzap.minim.api.internal;
 
 import com.joanzap.minim.api.BaseEvent;
 import com.joanzap.minim.demo.MainActivity;
@@ -12,13 +12,13 @@ public class MainActivityInjector extends Injector<MainActivity> {
     MainActivityInjector() {}
 
     @Override
-    public void inject(MainActivity injectable) {
+    protected void inject(MainActivity injectable) {
         // Inject all @InjectService
         injectable.service = DemoServiceImpl.get(injectable);
     }
 
     @Override
-    void dispatch(MainActivity target, BaseEvent event) {
+    protected void dispatch(MainActivity target, BaseEvent event) {
         // Dispatch all applicable @InjectResult
         if (event instanceof UserEvent) {
             try {

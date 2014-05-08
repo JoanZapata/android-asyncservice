@@ -1,4 +1,4 @@
-package com.joanzap.minim.internal;
+package com.joanzap.minim.api.internal;
 
 import com.joanzap.minim.api.BaseEvent;
 
