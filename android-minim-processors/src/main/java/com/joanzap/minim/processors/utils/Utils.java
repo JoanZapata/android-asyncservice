@@ -105,12 +105,22 @@ public class Utils {
             if (superClassElement instanceof TypeElement)
                 out.addAll(findElementsAnnotatedWith((TypeElement) superClassElement, annotationClass));
         }
-        
+
         return out;
     }
 
     /** Return true if the given annotation mirror equals the given annotation class */
     private static boolean equals(AnnotationMirror annotationMirror, Class<? extends Annotation> annotationClass) {
         return annotationMirror.getAnnotationType().toString().equals(annotationClass.getName());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Element> T castOrThrow(Element element, Class<T> subclass, String error) {
+        if (subclass.isAssignableFrom(element.getClass())) return (T) element;
+        else throw new IllegalArgumentException(error);
+    }
+
+    public static void assertThat(boolean condition, String errorMessage) {
+        if (!condition) throw new IllegalArgumentException(errorMessage);
     }
 }

@@ -1,6 +1,7 @@
 package com.joanzap.minim.processors;
 
 import com.joanzap.minim.api.BaseEvent;
+import com.joanzap.minim.api.annotation.InjectResponse;
 import com.joanzap.minim.api.annotation.InjectService;
 import com.joanzap.minim.api.internal.Injector;
 import com.joanzap.minim.api.internal.Minim;
@@ -14,7 +15,9 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
@@ -23,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.joanzap.minim.processors.MinimServiceAP.GENERATED_CLASS_SUFFIX;
+import static com.joanzap.minim.processors.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
@@ -75,25 +79,38 @@ public class InjectAP extends AbstractProcessor {
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
                     .emitEmptyLine();
 
-            // Generates "protected void inject(XXX target)"
+            // Generates "protected void inject(XXX target) { ..."
             writer.emitAnnotation(Override.class)
                     .beginMethod("void", "inject", of(PROTECTED), simpleName, "target");
 
-            // Inject all services
-            List<Element> elementsAnnotatedWith = Utils.findElementsAnnotatedWith(enclosingElement, InjectService.class);
+            // Here, inject all services
+            List<Element> elementsAnnotatedWith = findElementsAnnotatedWith(enclosingElement, InjectService.class);
             for (Element element : elementsAnnotatedWith) {
                 if (element.getModifiers().contains(PUBLIC)) {
                     writer.emitStatement("target.%s = new %s(target)", element.getSimpleName(), element.asType().toString() + GENERATED_CLASS_SUFFIX);
                 }
             }
 
-            // Here, inject services
+            // End of inject()
             writer.endMethod().emitEmptyLine();
 
             // Generates "protected void dispatch(XXX target, BaseEvent event)"
             writer.emitAnnotation(Override.class)
                     .beginMethod("void", "dispatch", of(PROTECTED), simpleName, "target", BaseEvent.class.getSimpleName(), "event");
+
             // Here, dispatch events to methods
+            List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, InjectResponse.class);
+            for (Element responseReceiver : responseReceivers) {
+                ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
+                List<? extends VariableElement> parameters = annotatedMethod.getParameters();
+                assertThat(parameters.size() == 1, "@InjectResponse annotated methods should have exactly one parameter.");
+                String parameterType = parameters.get(0).asType().toString();
+                writer.beginControlFlow("if (event instanceof %s)", parameterType)
+                        .emitStatement("target.%s((%s) event)", annotatedMethod.getSimpleName(), parameterType)
+                        .endControlFlow();
+            }
+
+            // End of inject();
             writer.endMethod().emitEmptyLine();
 
             // End of file
