@@ -1,10 +1,14 @@
 package com.joanzap.minim.processors.utils;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,5 +83,34 @@ public class Utils {
      */
     private static boolean isNullOrEmpty(String elementPackage) {
         return elementPackage == null || elementPackage.isEmpty();
+    }
+
+    /**
+     * Finds all elements (fields, methods) annotated with the given annotation in the given class element.
+     */
+    public static List<Element> findElementsAnnotatedWith(TypeElement element, Class<? extends Annotation> annotationClass) {
+
+        // Find elements
+        List<Element> out = new ArrayList<Element>();
+        for (Element enclosedElement : element.getEnclosedElements()) {
+            for (AnnotationMirror annotationMirror : enclosedElement.getAnnotationMirrors()) {
+                if (equals(annotationMirror, annotationClass))
+                    out.add(enclosedElement);
+            }
+        }
+
+        // Then do a recursive call on super class if any
+        if (element.getSuperclass() != null && element.getSuperclass() instanceof DeclaredType) {
+            Element superClassElement = ((DeclaredType) element.getSuperclass()).asElement();
+            if (superClassElement instanceof TypeElement)
+                out.addAll(findElementsAnnotatedWith((TypeElement) superClassElement, annotationClass));
+        }
+        
+        return out;
+    }
+
+    /** Return true if the given annotation mirror equals the given annotation class */
+    private static boolean equals(AnnotationMirror annotationMirror, Class<? extends Annotation> annotationClass) {
+        return annotationMirror.getAnnotationType().toString().equals(annotationClass.getName());
     }
 }

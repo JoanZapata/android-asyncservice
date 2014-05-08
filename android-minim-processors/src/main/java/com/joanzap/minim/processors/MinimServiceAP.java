@@ -44,45 +44,36 @@ public class MinimServiceAP extends AbstractProcessor {
 
                 // Get name and package
                 String elementName = minimServiceElement.getSimpleName().toString();
-                String minimPackage = Minim.class.getPackage().getName();
+                String elementPackage = Utils.getElementPackageName(minimServiceElement);
+
                 // Create the output file
                 String newElementName = elementName + GENERATED_CLASS_SUFFIX;
-
-                String targetFile = Utils.getFullName(minimPackage, newElementName);
+                String targetFile = ((TypeElement) minimServiceElement).getQualifiedName() + GENERATED_CLASS_SUFFIX;
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
                 logger.note(classFile.toUri().toString());
                 Writer out = classFile.openWriter();
                 JavaWriter writer = new JavaWriter(out);
-                JavaWriter classWriter = writer.emitPackage(minimPackage)
+
+                // Start writing the file
+                JavaWriter classWriter = writer.emitPackage(elementPackage)
+                        .emitImports(Minim.class)
                         .emitImports(
                                 minimServiceElement.toString(),
                                 "android.content.Context")
                         .emitEmptyLine()
                         .beginType(newElementName, "class", of(PUBLIC, FINAL), minimServiceElement.toString());
 
-                // Create a static holder for the instance
-                classWriter.emitEmptyLine()
-                        .emitField(newElementName, "instance", of(PRIVATE, FINAL, STATIC),
-                                "new " + newElementName + "()");
-
-                // Create the internal field
+                // Create the emitter field
                 classWriter
                         .emitEmptyLine()
-                        .emitField(elementName, "internal", of(PRIVATE, FINAL),
-                                "new " + elementName + "()");
+                        .emitField("Object", "emitter", of(PRIVATE, FINAL));
 
-                // Generate a private constructor
+                // Generate a public constructor
                 classWriter
                         .emitEmptyLine()
-                        .beginConstructor(of(PRIVATE))
+                        .beginConstructor(of(PUBLIC), "Object", "emitter")
+                        .emitStatement("this.emitter = emitter")
                         .endConstructor();
-
-                // Generate a static getter
-                classWriter
-                        .emitEmptyLine()
-                        .beginMethod(newElementName, "get", of(PUBLIC, STATIC), "Context", "context")
-                        .emitStatement("return instance")
-                        .endMethod();
 
                 // Manage each method
                 for (Element element : minimServiceElement.getEnclosedElements())
@@ -111,7 +102,7 @@ public class MinimServiceAP extends AbstractProcessor {
                         Utils.formatParameters(method, true), null)
 
                         // Delegate the call to the user method
-                .emitStatement("Minim.dispatch(internal.%s(%s))",
+                .emitStatement("Minim.dispatch(super.%s(%s))",
                         method.getSimpleName(),
                         Utils.formatParametersForCall(method))
 

@@ -13,10 +13,6 @@ public abstract class Injector<T> {
         inject(target);
     }
 
-    protected T getTarget() {
-        return target.get();
-    }
-
     /**
      * Dispatch the event to the target.
      * @return true if object is still valid (target is alive)

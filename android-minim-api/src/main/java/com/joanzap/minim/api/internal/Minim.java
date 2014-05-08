@@ -43,7 +43,7 @@ public final class Minim {
     }
 
     /** Dispatch an event, application wide. */
-    static void dispatch(BaseEvent event) {
+    public static void dispatch(BaseEvent event) {
 
         // Loop through injectors
         for (int i = 0; i < injectors.size(); i++) {
@@ -55,5 +55,9 @@ public final class Minim {
             // Removed it from the list if the injector target is no more valid
             if (!isValid) injectors.remove(i--);
         }
+    }
+
+    public static void newInjector(Class injectableClass, Class<? extends Injector> injectorClass) {
+        injectorClasses.put(injectableClass, injectorClass);
     }
 }
