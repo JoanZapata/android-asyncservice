@@ -75,12 +75,6 @@ public class InjectAP extends AbstractProcessor {
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
                     .emitEmptyLine();
 
-            // Statically register this new class to the Minim class
-            writer.beginInitializer(true)
-                    .emitStatement("Minim.newInjector(%s.class, %s.class)", simpleName, simpleName + INJECTOR_SUFFIX)
-                    .endInitializer()
-                    .emitEmptyLine();
-
             // Generates "protected void inject(XXX target)"
             writer.emitAnnotation(Override.class)
                     .beginMethod("void", "inject", of(PROTECTED), simpleName, "target");

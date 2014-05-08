@@ -2,18 +2,13 @@ package com.joanzap.minim.api.internal;
 
 import com.joanzap.minim.api.BaseEvent;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 @SuppressWarnings("unchecked")
 public final class Minim {
 
-    static final Map<Class, Class<? extends Injector>> injectorClasses = new HashMap<Class, Class<? extends Injector>>();
-
-    static final List<Injector> injectors = asList();
+    static final List<Injector> injectors = new ArrayList<Injector>();
 
     /**
      * Inject @InjectService fields and activates
@@ -25,7 +20,7 @@ public final class Minim {
         // Try to find an injector for the supplied object class (or superclasses)
         Class<? extends Injector> injectorClass = null;
         Class currentClass = object.getClass();
-        while (currentClass != null && (injectorClass = injectorClasses.get(currentClass)) == null) {
+        while (currentClass != null && (injectorClass = findInjectorFor(currentClass)) == null) {
             currentClass = currentClass.getSuperclass();
         }
 
@@ -38,7 +33,15 @@ public final class Minim {
             newInjector.setTarget(object);
             injectors.add(newInjector);
         } catch (Exception e) {
-            throw new IllegalStateException("All injectorClasses should have a public no-arg constructor");
+            throw new IllegalStateException("All injectorClasses should have a public no-arg constructor", e);
+        }
+    }
+
+    private static Class<? extends Injector> findInjectorFor(Class currentClass) {
+        try {
+            return (Class<? extends Injector>) Class.forName(currentClass.getCanonicalName() + "Injector");
+        } catch (ClassNotFoundException e) {
+            return null;
         }
     }
 
@@ -57,7 +60,4 @@ public final class Minim {
         }
     }
 
-    public static void newInjector(Class injectableClass, Class<? extends Injector> injectorClass) {
-        injectorClasses.put(injectableClass, injectorClass);
-    }
 }

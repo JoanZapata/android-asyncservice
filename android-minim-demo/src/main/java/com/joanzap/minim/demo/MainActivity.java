@@ -6,8 +6,8 @@ import android.util.Log;
 import android.widget.TextView;
 import com.joanzap.minim.api.annotation.InjectResponse;
 import com.joanzap.minim.api.annotation.InjectService;
-import com.joanzap.minim.demo.event.UserEvent;
 import com.joanzap.minim.api.internal.Minim;
+import com.joanzap.minim.demo.event.UserEvent;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -22,6 +22,12 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         text = (TextView) findViewById(R.id.text);
         Minim.inject(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        service.getUser(3L);
     }
 
     @InjectResponse
