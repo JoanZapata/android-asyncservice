@@ -1,6 +1,0 @@
-apply plugin: 'java'
-
-dependencies {
-    compile project(':android-minim-api')
-    compile 'com.squareup:javawriter:2.5.+'
-}

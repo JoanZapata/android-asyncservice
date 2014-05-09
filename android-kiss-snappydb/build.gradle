@@ -1,0 +1,17 @@
+apply plugin: 'android-library'
+
+dependencies {
+    compile 'com.snappydb:snappydb-api:0.2.+'
+    compile project(':android-kiss-api')
+}
+
+android {
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 19
+    }
+
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+}

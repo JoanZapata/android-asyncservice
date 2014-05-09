@@ -1,1 +1,1 @@
-include ':android-minim-demo', ':android-minim', ':android-minim-processors', ':android-minim-api'
+include 'android-kiss-processors', 'android-kiss-snappydb', 'android-kiss-api', 'android-kiss-demo'
