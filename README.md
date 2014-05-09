@@ -15,12 +15,13 @@ Create a Kiss service
 @KissService
 public class DemoService {
 
-    /*
-      Define a method that takes arguments and return a result.
-      You can make network calls and/or long running ops here.
-    */
+   
     @Cached
     public UserEvent getUser(Long id) {
+        /*
+            Defines a method that takes arguments and returns a result.
+            You can make network calls and/or long running ops here!
+        */
         return ...;
     }
 
@@ -47,15 +48,14 @@ public class MainActivity extends Activity {
         service.getUser("joan");
     }
 
-    /* 
-        You receive results asynchronously here, on the UI thread.
-        As a default, if the user was in cache, you'll receive
-        a cached result first, and then the result of getUser()
-        when it returns.
-    */
     @Result 
     public void onUserFetched(UserEvent e) {
-        ...
+        /* 
+            You receive results asynchronously here, on the UI thread.
+            As a default, if the user was in cache, you'll receive
+            a cached result first, and then the result of getUser()
+            when it returns.
+        */
     }
 
 }
