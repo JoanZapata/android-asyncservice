@@ -4,7 +4,7 @@
 
 ## Motivation
 
-**Kiss** is born from an [article](http://joanzap.ghost.io/robust-architecture-for-an-android-app/) I wrote a few weeks ago, which gave me a lot of feedbacks and interesting comments. **Kiss** manages threading and caching transparently in your Android app. It's an alternative to [AsyncTasks](http://developer.android.com/reference/android/os/AsyncTask.html), [Loaders](http://developer.android.com/guide/components/loaders.html), or more advanced libs like [RxJava](https://github.com/Netflix/RxJava), [Robospice](https://github.com/stephanenicolas/robospice), [Groundy](https://github.com/telly/groundy),… but **Kiss** focuses on keeping your code short and simple! Its name means *keep it simple, stupid*, an old [design principle](http://en.wikipedia.org/wiki/KISS_principle) invented in the 60s.
+**Kiss** is born from an [article](http://blog.joanzapata.com/robust-architecture-for-an-android-app/) I wrote a few weeks ago, which gave me a lot of feedbacks and interesting comments. **Kiss** manages threading and caching transparently in your Android app. It's an alternative to [AsyncTasks](http://developer.android.com/reference/android/os/AsyncTask.html), [Loaders](http://developer.android.com/guide/components/loaders.html), or more advanced libs like [RxJava](https://github.com/Netflix/RxJava), [Robospice](https://github.com/stephanenicolas/robospice), [Groundy](https://github.com/telly/groundy),… but **Kiss** focuses on keeping your code short and simple! Its name means *keep it simple, stupid*, an old [design principle](http://en.wikipedia.org/wiki/KISS_principle) invented in the 60s.
 
 ## Usage
 
