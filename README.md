@@ -8,7 +8,7 @@
 
 ## Usage
 
-Create a Kiss service
+#### Kiss Service
 
 ```java
 // Annotate a class with @KissService
@@ -27,8 +27,9 @@ public class DemoService {
 
 }
 ```
+> See [More possibilities for Service](https://github.com/JoanZapata/android-kiss/blob/master/android-kiss-demo/src/main/java/com/joanzap/android/kiss/demo/DemoService.java)
 
-Then inject it in your activities (or any class) and use it!
+#### Client code
 
 ```java
 public class MainActivity extends Activity {
@@ -60,6 +61,8 @@ public class MainActivity extends Activity {
 
 }
 ```
+
+> See [more possibilities for client code](https://github.com/JoanZapata/android-kiss/blob/master/android-kiss-demo/src/main/java/com/joanzap/android/kiss/demo/MainActivity.java)
 
 ## How does it work?
 
