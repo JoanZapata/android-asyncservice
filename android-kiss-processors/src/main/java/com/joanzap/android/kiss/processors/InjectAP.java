@@ -89,7 +89,7 @@ public class InjectAP extends AbstractProcessor {
             List<Element> elementsAnnotatedWith = findElementsAnnotatedWith(enclosingElement, InjectService.class);
             for (Element element : elementsAnnotatedWith) {
                 if (element.getModifiers().contains(PUBLIC)) {
-                    writer.emitStatement("target.%s = new %s(target)", element.getSimpleName(), element.asType().toString() + MinimServiceAP.GENERATED_CLASS_SUFFIX);
+                    writer.emitStatement("target.%s = new %s(target)", element.getSimpleName(), element.asType().toString() + KissServiceAP.GENERATED_CLASS_SUFFIX);
                 }
             }
 

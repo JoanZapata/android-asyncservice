@@ -22,9 +22,9 @@ import java.util.Set;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
-@SupportedAnnotationTypes({"com.joanzap.android.kiss.api.annotation.MinimService"})
+@SupportedAnnotationTypes({"com.joanzap.android.kiss.api.annotation.KissService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-public class MinimServiceAP extends AbstractProcessor {
+public class KissServiceAP extends AbstractProcessor {
 
     public static final String GENERATED_CLASS_SUFFIX = "Impl";
 
@@ -40,7 +40,7 @@ public class MinimServiceAP extends AbstractProcessor {
 
             // Loop through elements
             for (Element minimServiceElement : minimServices) {
-                logger.note("Processing @MinimService on " + minimServiceElement);
+                logger.note("Processing @KissService on " + minimServiceElement);
 
                 // Get name and package
                 String elementName = minimServiceElement.getSimpleName().toString();
@@ -102,7 +102,7 @@ public class MinimServiceAP extends AbstractProcessor {
                         Utils.formatParameters(method, true), null)
 
                         // Delegate the call to the user method
-                .emitStatement("Minim.dispatch(super.%s(%s))",
+                .emitStatement("Kiss.dispatch(super.%s(%s))",
                         method.getSimpleName(),
                         Utils.formatParametersForCall(method))
 
