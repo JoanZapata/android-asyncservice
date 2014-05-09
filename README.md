@@ -17,26 +17,28 @@ public class DemoService {
 
     /*
       Define a method that takes arguments and return a result.
-      You can make network calls and/or long running ops here
+      You can make network calls and/or long running ops here.
     */
-    @Cached public UserEvent getUser(Long id) {
+    @Cached
+    public UserEvent getUser(Long id) {
         return ...;
     }
 
 }
 ```
 
-Then use it!
+Then inject it in your activities (or any class) and use it!
 
 ```java
 public class MainActivity extends Activity {
 
-    // Inject the service into your app
-    @InjectService public DemoService service;
+    // Inject the service
+    @InjectService 
+    public DemoService service;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    @Override 
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
         
         // That's the only boilerplate code you'll need to write for this lib!
         Kiss.inject(this);
@@ -45,8 +47,14 @@ public class MainActivity extends Activity {
         service.getUser("joan");
     }
 
-    // You receive results asynchronously here
-    @InjectResponse public void onUserFetched(UserEvent e) {
+    /* 
+        You receive results asynchronously here, on the UI thread.
+        As a default, if the user was in cache, you'll receive
+        a cached result first, and then the result of getUser()
+        when it returns.
+    */
+    @Result 
+    public void onUserFetched(UserEvent e) {
         ...
     }
 
