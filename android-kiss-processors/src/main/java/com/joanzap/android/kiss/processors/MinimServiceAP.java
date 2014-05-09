@@ -1,7 +1,7 @@
 package com.joanzap.android.kiss.processors;
 
-import com.joanzap.android.kiss.api.annotation.MinimService;
-import com.joanzap.android.kiss.api.internal.Minim;
+import com.joanzap.android.kiss.api.annotation.KissService;
+import com.joanzap.android.kiss.api.internal.Kiss;
 import com.joanzap.android.kiss.processors.utils.Logger;
 import com.joanzap.android.kiss.processors.utils.Utils;
 import com.squareup.javawriter.JavaWriter;
@@ -36,7 +36,7 @@ public class MinimServiceAP extends AbstractProcessor {
             Logger logger = new Logger(processingEnv.getMessager());
 
             // Retrieve @MinimService annotated elements
-            Set<? extends Element> minimServices = roundEnvironment.getElementsAnnotatedWith(MinimService.class);
+            Set<? extends Element> minimServices = roundEnvironment.getElementsAnnotatedWith(KissService.class);
 
             // Loop through elements
             for (Element minimServiceElement : minimServices) {
@@ -56,7 +56,7 @@ public class MinimServiceAP extends AbstractProcessor {
 
                 // Start writing the file
                 JavaWriter classWriter = writer.emitPackage(elementPackage)
-                        .emitImports(Minim.class)
+                        .emitImports(Kiss.class)
                         .emitImports(
                                 minimServiceElement.toString(),
                                 "android.content.Context")

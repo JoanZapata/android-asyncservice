@@ -4,7 +4,7 @@ import com.joanzap.android.kiss.api.BaseEvent;
 import com.joanzap.android.kiss.api.annotation.InjectResponse;
 import com.joanzap.android.kiss.api.annotation.InjectService;
 import com.joanzap.android.kiss.api.internal.Injector;
-import com.joanzap.android.kiss.api.internal.Minim;
+import com.joanzap.android.kiss.api.internal.Kiss;
 import com.joanzap.android.kiss.processors.utils.Logger;
 import com.joanzap.android.kiss.processors.utils.Utils;
 import com.squareup.javawriter.JavaWriter;
@@ -76,7 +76,7 @@ public class InjectAP extends AbstractProcessor {
 
             // Generates "public final class XXXInjector extends Injector<XXX>"
             writer.emitPackage(packageName)
-                    .emitImports(Minim.class, Injector.class, BaseEvent.class)
+                    .emitImports(Kiss.class, Injector.class, BaseEvent.class)
                     .emitEmptyLine()
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
                     .emitEmptyLine();

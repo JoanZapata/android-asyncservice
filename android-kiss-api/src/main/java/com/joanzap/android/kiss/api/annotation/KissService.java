@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface MinimService {
+public @interface KissService {
 
     Class<? extends BaseCache> cache() default DefaultCache.class;
 

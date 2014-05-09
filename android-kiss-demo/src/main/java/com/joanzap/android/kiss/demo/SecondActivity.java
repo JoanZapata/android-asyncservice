@@ -6,7 +6,7 @@ import android.util.Log;
 import android.widget.TextView;
 import com.joanzap.android.kiss.api.annotation.InjectResponse;
 import com.joanzap.android.kiss.api.annotation.InjectService;
-import com.joanzap.android.kiss.api.internal.Minim;
+import com.joanzap.android.kiss.api.internal.Kiss;
 import com.joanzap.android.kiss.demo.event.UserEvent;
 
 public class SecondActivity extends ActionBarActivity {
@@ -21,7 +21,7 @@ public class SecondActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         text = (TextView) findViewById(R.id.text);
-        Minim.inject(this);
+        Kiss.inject(this);
     }
 
     @InjectResponse

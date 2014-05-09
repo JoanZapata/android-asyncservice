@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-public final class Minim {
+public final class Kiss {
 
     static final List<Injector> injectors = new ArrayList<Injector>();
 
