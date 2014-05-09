@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
 
 ## How does it work?
 
-First of all, **Kiss** does not rely heavily upon reflection. It's an annotation processor, which generates code that will call your code directly at runtime, without reflection. The only bit of reflection is done to find and instanciate the injector for your class when you call ```inject()```.
+First of all, **Kiss** does not rely heavily upon reflection. It's an annotation processor, which generates code that will call your code directly at runtime, without reflection. The only bit of reflection is done to find and instantiate the injector for your class when you call ```inject()```.
 
 // TODO schema
 
