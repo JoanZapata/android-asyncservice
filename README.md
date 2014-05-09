@@ -27,7 +27,7 @@ public class DemoService {
 
 }
 ```
-> See [More possibilities for Service](https://github.com/JoanZapata/android-kiss/blob/master/android-kiss-demo/src/main/java/com/joanzap/android/kiss/demo/DemoService.java)
+> See [more possibilities for service code](https://github.com/JoanZapata/android-kiss/blob/master/android-kiss-demo/src/main/java/com/joanzap/android/kiss/demo/DemoService.java)
 
 #### Client code
 
