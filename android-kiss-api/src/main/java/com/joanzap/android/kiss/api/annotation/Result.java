@@ -9,10 +9,16 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
-public @interface InjectResponse {
+public @interface Result {
 
     Class<? extends BaseEvent> value() default USE_PARAMETER_TYPE.class;
 
+    Sender from() default Sender.THIS;
+
     /** This is the default value for event(), do not use it. */
     static final class USE_PARAMETER_TYPE extends BaseEvent {}
+
+    static enum Sender {
+        THIS, ALL
+    }
 }

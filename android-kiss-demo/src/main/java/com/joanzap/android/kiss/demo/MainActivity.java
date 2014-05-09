@@ -4,10 +4,12 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.widget.TextView;
-import com.joanzap.android.kiss.api.annotation.InjectResponse;
 import com.joanzap.android.kiss.api.annotation.InjectService;
+import com.joanzap.android.kiss.api.annotation.Result;
 import com.joanzap.android.kiss.api.internal.Kiss;
 import com.joanzap.android.kiss.demo.event.UserEvent;
+
+import static com.joanzap.android.kiss.api.annotation.Result.Sender.ALL;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -29,17 +31,48 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        service.getUser(3L);
+        service.getUserAsyncWithCache(3L);
     }
 
-    @InjectResponse
+    /*
+        The return type of getUserAsyncWithCache() is UserEvent, so the result will come here.
+
+        As we used @Cached on getUserAsyncWithCache(), the result will probably come twice :
+        the first result will be the cached value, the second one will be the up-to-date result.
+
+        We will never receive a cached result AFTER a real result, even if we call getUserAsyncWithCache()
+        multiple times.
+     */
+    @Result
     public void onUserFetched(UserEvent e) {
         text.setText(e.name + " " + e.age);
     }
 
-    @InjectResponse(UserEvent.class)
+    /*
+        Sometimes we just need to know when the result arrives,
+        but don't actually use it. So just use a no-arg method
+        with the event type in the annotation.
+     */
+    @Result(UserEvent.class)
     public void onUserFetched() {
         Log.i(TAG, "User fetched !");
+    }
+
+    /*
+        By default we only receive the results of requests made
+         on the injected service of this class. It means that if
+         you have two fragments using a different service, and
+         calling the same method on the service, they won't receive
+         others response.
+
+         That fits most case, but if for some reason you want
+         to listen to ALL events of a certain type, no matter
+         which service the method was called on, you can use
+         from = ALL.
+     */
+    @Result(from = ALL)
+    public void onUserFetchedFromAnywhere(UserEvent e) {
+        Log.i(TAG, "User fetched from anywhere !");
     }
 
 }

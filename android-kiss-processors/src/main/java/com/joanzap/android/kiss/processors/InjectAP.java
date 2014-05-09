@@ -1,8 +1,8 @@
 package com.joanzap.android.kiss.processors;
 
 import com.joanzap.android.kiss.api.BaseEvent;
-import com.joanzap.android.kiss.api.annotation.InjectResponse;
 import com.joanzap.android.kiss.api.annotation.InjectService;
+import com.joanzap.android.kiss.api.annotation.Result;
 import com.joanzap.android.kiss.api.internal.Injector;
 import com.joanzap.android.kiss.api.internal.Kiss;
 import com.joanzap.android.kiss.processors.utils.Logger;
@@ -31,7 +31,7 @@ import static com.joanzap.android.kiss.processors.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
-@SupportedAnnotationTypes({"com.joanzap.android.kiss.api.annotation.InjectResponse", "com.joanzap.android.kiss.api.annotation.InjectService"})
+@SupportedAnnotationTypes({"com.joanzap.android.kiss.api.annotation.Result", "com.joanzap.android.kiss.api.annotation.InjectService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class InjectAP extends AbstractProcessor {
 
@@ -101,7 +101,7 @@ public class InjectAP extends AbstractProcessor {
                     .beginMethod("void", "dispatch", of(PROTECTED), simpleName, "target", BaseEvent.class.getSimpleName(), "event");
 
             // Here, dispatch events to methods
-            List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, InjectResponse.class);
+            List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, Result.class);
             for (Element responseReceiver : responseReceivers) {
                 ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
                 List<? extends VariableElement> parameters = annotatedMethod.getParameters();
@@ -112,7 +112,7 @@ public class InjectAP extends AbstractProcessor {
                 if (parameters.size() == 1) {
                     eventType = parameters.get(0).asType().toString();
                 } else {
-                    AnnotationMirror annotation = getAnnotation(annotatedMethod, InjectResponse.class);
+                    AnnotationMirror annotation = getAnnotation(annotatedMethod, Result.class);
                     DeclaredType parameterTypeClass = getAnnotationValue(annotation, "value", DeclaredType.class);
                     assertThat(parameterTypeClass != null, "@InjectResponse on a no-arg method should have a value.");
                     eventType = parameterTypeClass.toString();

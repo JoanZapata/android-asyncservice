@@ -13,4 +13,11 @@ public @interface Cached {
 
     String key() default NO_KEY;
 
+    Usage usage() default Usage.CACHE_THEN_RENEW;
+
+    long validity() default 0;
+
+    static enum Usage {
+        CACHE_THEN_RENEW, CACHE_ONLY
+    }
 }
