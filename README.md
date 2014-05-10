@@ -1,4 +1,4 @@
-### This is a work in progress, do not use
+> #### This is a work in progress, do not use, but feel free to open issues if you want to suggest anything!
 
 ![Logo](https://raw.githubusercontent.com/JoanZapata/android-kiss/master/logo.png)
 
