@@ -17,6 +17,7 @@ package com.joanzapata.android.kiss.processors;
 
 import com.joanzapata.android.kiss.api.BaseEvent;
 import com.joanzapata.android.kiss.api.annotation.KissService;
+import com.joanzapata.android.kiss.api.internal.BackgroundExecutor;
 import com.joanzapata.android.kiss.api.internal.Kiss;
 import com.joanzapata.android.kiss.processors.utils.Logger;
 import com.joanzapata.android.kiss.processors.utils.Utils;
@@ -72,7 +73,7 @@ public class KissServiceAP extends AbstractProcessor {
 
                 // Start writing the file
                 JavaWriter classWriter = writer.emitPackage(elementPackage)
-                        .emitImports(Kiss.class, BaseEvent.class)
+                        .emitImports(Kiss.class, BaseEvent.class, BackgroundExecutor.class)
                         .emitImports(
                                 minimServiceElement.toString(),
                                 "android.content.Context")
@@ -94,7 +95,7 @@ public class KissServiceAP extends AbstractProcessor {
                 // Manage each method
                 for (Element element : minimServiceElement.getEnclosedElements())
                     if (Utils.isPublicMethod(element))
-                        createDelegateMethod(classWriter, (ExecutableElement) element);
+                        createDelegateMethod(classWriter, (ExecutableElement) element, newElementName);
 
                 classWriter.endType();
 
@@ -107,7 +108,7 @@ public class KissServiceAP extends AbstractProcessor {
         }
     }
 
-    private void createDelegateMethod(JavaWriter classWriter, ExecutableElement method) throws IOException {
+    private void createDelegateMethod(JavaWriter classWriter, ExecutableElement method, String newElementName) throws IOException {
 
         // Start the mimic method
         classWriter.emitEmptyLine()
@@ -116,14 +117,18 @@ public class KissServiceAP extends AbstractProcessor {
                         method.getSimpleName().toString(),
                         method.getModifiers(),
                         Utils.formatParameters(method, true), null)
-
                         // Delegate the call to the user method
-                .emitStatement("BaseEvent __event = super.%s(%s)",
+                .emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
+                                "            @Override\n" +
+                                "            public void run() {\n" +
+                                "                BaseEvent __event = %s.super.%s(%s);\n" +
+                                "                Kiss.dispatch(emitter, __event);\n" +
+                                "            }\n" +
+                                "        }, \"id\", \"serial\")",
+                        newElementName,
                         method.getSimpleName(),
-                        Utils.formatParametersForCall(method))
-
-                        // Dispatch the result
-                .emitStatement("Kiss.dispatch(emitter, __event)")
+                        Utils.formatParametersForCall(method)
+                )
 
                 .emitStatement("return null")
                 .endMethod();

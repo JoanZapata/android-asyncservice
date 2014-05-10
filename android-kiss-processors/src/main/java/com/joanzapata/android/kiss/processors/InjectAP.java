@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.joanzapata.android.kiss.api.annotation.Result.Sender.ALL;
 import static com.joanzapata.android.kiss.processors.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
@@ -133,11 +134,11 @@ public class InjectAP extends AbstractProcessor {
 
                 // Define whether we should check emitter or not dependeing on the annotation value
                 VariableElement from = getAnnotationValue(getAnnotation(annotatedMethod, Result.class), "from");
-                boolean checkEmitter = Result.Sender.ALL.toString().equals("" + from);
+                boolean checkEmitter = !ALL.toString().equals("" + from);
 
                 // Write the code to call the user method
                 if (checkEmitter) writer.beginControlFlow("if (event.getEmitter() == getTarget())");
-                writer.beginControlFlow("if (event instanceof %s && event.getEmitter() == getTarget())", eventType)
+                writer.beginControlFlow("if (event instanceof %s)", eventType)
                         .emitStatement("target.%s((%s) event)", annotatedMethod.getSimpleName(), eventType)
                         .endControlFlow();
                 if (checkEmitter) writer.endControlFlow();
