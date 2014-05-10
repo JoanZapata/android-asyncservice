@@ -15,6 +15,7 @@
  */
 package com.joanzapata.android.kiss.processors;
 
+import com.joanzapata.android.kiss.api.BaseEvent;
 import com.joanzapata.android.kiss.api.annotation.KissService;
 import com.joanzapata.android.kiss.api.internal.Kiss;
 import com.joanzapata.android.kiss.processors.utils.Logger;
@@ -71,7 +72,7 @@ public class KissServiceAP extends AbstractProcessor {
 
                 // Start writing the file
                 JavaWriter classWriter = writer.emitPackage(elementPackage)
-                        .emitImports(Kiss.class)
+                        .emitImports(Kiss.class, BaseEvent.class)
                         .emitImports(
                                 minimServiceElement.toString(),
                                 "android.content.Context")
@@ -117,9 +118,12 @@ public class KissServiceAP extends AbstractProcessor {
                         Utils.formatParameters(method, true), null)
 
                         // Delegate the call to the user method
-                .emitStatement("Kiss.dispatch(super.%s(%s))",
+                .emitStatement("BaseEvent __event = super.%s(%s)",
                         method.getSimpleName(),
                         Utils.formatParametersForCall(method))
+
+                        // Dispatch the result
+                .emitStatement("Kiss.dispatch(emitter, __event)")
 
                 .emitStatement("return null")
                 .endMethod();

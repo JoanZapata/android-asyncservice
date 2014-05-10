@@ -31,11 +31,11 @@ public abstract class BaseEvent {
         this.cached = cached;
     }
 
-    Object getEmitter() {
+    public Object getEmitter() {
         return emitter.get();
     }
 
-    void setEmitter(Object emitter) {
+    public void setEmitter(Object emitter) {
         this.emitter = new WeakReference(emitter);
     }
 }

@@ -29,7 +29,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -127,15 +126,21 @@ public class InjectAP extends AbstractProcessor {
                 if (parameters.size() == 1) {
                     eventType = parameters.get(0).asType().toString();
                 } else {
-                    AnnotationMirror annotation = getAnnotation(annotatedMethod, Result.class);
-                    DeclaredType parameterTypeClass = getAnnotationValue(annotation, "value", DeclaredType.class);
+                    DeclaredType parameterTypeClass = getAnnotationValue(getAnnotation(annotatedMethod, Result.class), "value");
                     assertThat(parameterTypeClass != null, "@InjectResponse on a no-arg method should have a value.");
                     eventType = parameterTypeClass.toString();
                 }
 
-                writer.beginControlFlow("if (event instanceof %s)", eventType)
+                // Define whether we should check emitter or not dependeing on the annotation value
+                VariableElement from = getAnnotationValue(getAnnotation(annotatedMethod, Result.class), "from");
+                boolean checkEmitter = Result.Sender.ALL.toString().equals("" + from);
+
+                // Write the code to call the user method
+                if (checkEmitter) writer.beginControlFlow("if (event.getEmitter() == getTarget())");
+                writer.beginControlFlow("if (event instanceof %s && event.getEmitter() == getTarget())", eventType)
                         .emitStatement("target.%s((%s) event)", annotatedMethod.getSimpleName(), eventType)
                         .endControlFlow();
+                if (checkEmitter) writer.endControlFlow();
             }
 
             // End of inject();

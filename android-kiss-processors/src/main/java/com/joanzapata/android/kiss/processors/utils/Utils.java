@@ -150,7 +150,7 @@ public class Utils {
         return null;
     }
 
-    public static <T> T getAnnotationValue(AnnotationMirror annotationMirror, String key, Class<T> returnType) {
+    public static <T> T getAnnotationValue(AnnotationMirror annotationMirror, String key) {
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
             if (entry.getKey().getSimpleName().toString().equals(key)) {
                 return (T) entry.getValue().getValue();

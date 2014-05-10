@@ -61,7 +61,8 @@ public final class Kiss {
     }
 
     /** Dispatch an event, application wide. */
-    public static void dispatch(BaseEvent event) {
+    public static void dispatch(Object emitter, BaseEvent event) {
+        event.setEmitter(emitter);
 
         // Loop through injectors
         for (int i = 0; i < injectors.size(); i++) {
