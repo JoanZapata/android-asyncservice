@@ -5,12 +5,21 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.7.0'
         classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
+
 allprojects {
     repositories {
         mavenCentral()
+    }
+
+    apply plugin: 'license'
+
+    license {
+        header rootProject.file('LICENSE')
+        strictCheck true
     }
 }

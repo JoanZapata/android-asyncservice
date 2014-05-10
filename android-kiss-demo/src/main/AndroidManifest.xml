@@ -16,8 +16,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.joanzap.android.kiss.demo.SecondActivity" />
     </application>
 
 </manifest>
