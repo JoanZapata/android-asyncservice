@@ -150,7 +150,7 @@ public class InjectAP extends AbstractProcessor {
                                         "        target.%s((%s) event);\n" :
                                         "        target.%s();\n") +
                                 "    }\n" +
-                                "})\n", annotatedMethod.getSimpleName(), eventType)
+                                "})", annotatedMethod.getSimpleName(), eventType)
                         .endControlFlow();
                 if (checkEmitter) writer.endControlFlow();
             }
