@@ -19,11 +19,13 @@ import com.joanzapata.android.kiss.api.BaseEvent;
 
 public class UserEvent extends BaseEvent {
 
-    public final Long id;
+    private Long id;
 
-    public final String name;
+    private String name;
 
-    public final int age;
+    private int age;
+
+    public UserEvent() {}
 
     public UserEvent(Long id, String name, int age) {
         this.id = id;
@@ -31,4 +33,15 @@ public class UserEvent extends BaseEvent {
         this.age = age;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
 }

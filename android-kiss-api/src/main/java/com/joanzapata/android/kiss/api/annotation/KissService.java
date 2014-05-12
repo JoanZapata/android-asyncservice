@@ -15,9 +15,6 @@
  */
 package com.joanzapata.android.kiss.api.annotation;
 
-import com.joanzapata.android.kiss.api.BaseCache;
-import com.joanzapata.android.kiss.api.internal.DefaultCache;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,7 +23,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface KissService {
-
-    Class<? extends BaseCache> cache() default DefaultCache.class;
 
 }

@@ -17,13 +17,12 @@ package com.joanzapata.android.kiss.demo;
 
 import com.joanzapata.android.kiss.api.annotation.Cached;
 import com.joanzapata.android.kiss.api.annotation.KissService;
-import com.joanzapata.android.kiss.cache.snappyb.SnappyCache;
 import com.joanzapata.android.kiss.demo.event.UserEvent;
 
 import static android.text.format.DateUtils.DAY_IN_MILLIS;
 import static com.joanzapata.android.kiss.api.annotation.Cached.Usage.CACHE_ONLY;
 
-@KissService(cache = SnappyCache.class)
+@KissService
 public class DemoService {
 
     /*

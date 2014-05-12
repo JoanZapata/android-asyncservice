@@ -15,9 +15,10 @@
  */
 package com.joanzapata.android.kiss.api;
 
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 
-public abstract class BaseEvent {
+public abstract class BaseEvent implements Serializable {
 
     private boolean cached;
 
@@ -27,8 +28,9 @@ public abstract class BaseEvent {
         return cached;
     }
 
-    public void setCached(boolean cached) {
-        this.cached = cached;
+    public BaseEvent cached() {
+        cached = true;
+        return this;
     }
 
     public Object getEmitter() {

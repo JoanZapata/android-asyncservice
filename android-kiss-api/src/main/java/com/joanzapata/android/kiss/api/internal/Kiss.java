@@ -15,6 +15,7 @@
  */
 package com.joanzapata.android.kiss.api.internal;
 
+import android.content.Context;
 import com.joanzapata.android.kiss.api.BaseEvent;
 
 import java.util.ArrayList;
@@ -25,12 +26,17 @@ public final class Kiss {
 
     static final List<Injector> injectors = new ArrayList<Injector>();
 
+    static Context context;
+
     /**
      * Inject @InjectService fields and activates
      * all @InjectResponse methods to receive further events.
      * @param object Inject the given object.
      */
     public static void inject(Object object) {
+
+        // Extract context from given object if possible
+        extractContextFromObject(object);
 
         // Try to find an injector for the supplied object class (or superclasses)
         Class<? extends Injector> injectorClass = null;
@@ -52,6 +58,20 @@ public final class Kiss {
         }
     }
 
+    /**
+     * If the given object contains an Android context, extract
+     * the application context and retain it statically.
+     */
+    private static void extractContextFromObject(Object object) {
+        if (context == null && object instanceof Context) {
+            context = ((Context) object).getApplicationContext();
+        }
+    }
+
+    /**
+     * Use class name to find a generated injector for the user class.
+     * TODO This will cause problem with proguard, find better approach. (generated mapper ?)
+     */
     private static Class<? extends Injector> findInjectorFor(Class currentClass) {
         try {
             return (Class<? extends Injector>) Class.forName(currentClass.getCanonicalName() + "Injector");

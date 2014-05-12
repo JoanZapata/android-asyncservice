@@ -15,8 +15,8 @@
  */
 package com.joanzapata.android.kiss.demo;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.widget.TextView;
 import com.joanzap.android.kiss.demo.R;
@@ -27,7 +27,7 @@ import com.joanzapata.android.kiss.demo.event.UserEvent;
 
 import static com.joanzapata.android.kiss.api.annotation.Result.Sender.ALL;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     public static final String TAG = "MainActivity";
 
@@ -61,7 +61,9 @@ public class MainActivity extends ActionBarActivity {
      */
     @Result
     public void onUserFetched(UserEvent e) {
-        text.setText(e.name + " " + e.age);
+        text.setText((e.isCached() ? "(cached)\n" : "")
+                + e.getName() + " "
+                + e.getAge());
     }
 
     /*

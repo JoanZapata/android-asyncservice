@@ -127,7 +127,8 @@ public class InjectAP extends AbstractProcessor {
 
                 // Define event type given parameter or @InjectResponse value
                 String eventType;
-                if (parameters.size() == 1) {
+                boolean hasArg = parameters.size() == 1;
+                if (hasArg) {
                     eventType = parameters.get(0).asType().toString();
                 } else {
                     DeclaredType parameterTypeClass = getAnnotationValue(getAnnotation(annotatedMethod, Result.class), "value");
@@ -143,13 +144,13 @@ public class InjectAP extends AbstractProcessor {
                 if (checkEmitter) writer.beginControlFlow("if (event.getEmitter() == getTarget())");
                 writer.beginControlFlow("if (event instanceof %s)", eventType)
                         .emitStatement("__handler.post(new Runnable() {\n" +
-                                        "    @Override\n" +
-                                        "    public void run() {\n" +
-                                        "        target.%s((%s) event);\n" +
-                                        "    }\n" +
-                                        "})\n",
-                                annotatedMethod.getSimpleName(), eventType
-                        )
+                                "    @Override\n" +
+                                "    public void run() {\n" +
+                                (hasArg ?
+                                        "        target.%s((%s) event);\n" :
+                                        "        target.%s();\n") +
+                                "    }\n" +
+                                "})\n", annotatedMethod.getSimpleName(), eventType)
                         .endControlFlow();
                 if (checkEmitter) writer.endControlFlow();
             }

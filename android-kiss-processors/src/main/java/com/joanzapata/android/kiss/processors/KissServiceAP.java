@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
 
-import static com.joanzapata.android.kiss.processors.utils.Utils.parseCacheKeyValue;
+import static com.joanzapata.android.kiss.processors.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
@@ -79,6 +79,7 @@ public class KissServiceAP extends AbstractProcessor {
                         .emitImports(Kiss.class, BaseEvent.class, BackgroundExecutor.class)
                         .emitImports(
                                 minimServiceElement.toString(),
+                                "com.joanzapata.android.kiss.api.internal.KissCache",
                                 "android.content.Context")
                         .emitEmptyLine()
                         .beginType(newElementName, "class", of(PUBLIC, FINAL), minimServiceElement.toString());
@@ -114,16 +115,13 @@ public class KissServiceAP extends AbstractProcessor {
     private void createDelegateMethod(JavaWriter classWriter, ExecutableElement method, String newElementName) throws IOException {
 
         // Find all needed values for @Cache if any
-        AnnotationMirror cachedAnnotation = Utils.getAnnotation(method, Cached.class);
+        AnnotationMirror cachedAnnotation = getAnnotation(method, Cached.class);
         boolean isCached = cachedAnnotation != null;
         String annotationCacheToParse = null;
         if (isCached) {
-            String annotationValue = Utils.getAnnotationValue(cachedAnnotation, "key");
-            if (annotationValue == null) {
-                annotationCacheToParse = defineKeyFromMethod(method);
-            } else {
-                annotationCacheToParse = annotationValue;
-            }
+            String annotationValue = getAnnotationValue(cachedAnnotation, "key");
+            annotationCacheToParse = annotationValue == null ?
+                    defineKeyFromMethod(method) : annotationValue;
         }
 
         // Start the mimic method
@@ -134,16 +132,17 @@ public class KissServiceAP extends AbstractProcessor {
                         method.getModifiers(),
                         Utils.formatParameters(method, true), null);
 
-        // Create the cache value if any
-        if (isCached) {
-            classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
-        }
+        // Check the cache
+        if (isCached)
+            classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse))
+                    .emitStatement("BaseEvent cache = KissCache.get(cacheKey, %s.class)", method.getReturnType().toString())
+                    .emitStatement("if (cache != null) Kiss.dispatch(emitter, cache.cached())");
 
         // Delegate the call to the user method
         classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
-                        "    @Override\n" +
                         "    public void run() {\n" +
                         "        BaseEvent __event = %s.super.%s(%s);\n" +
+                        (isCached ? "        if (__event != null) KissCache.store(cacheKey, __event);\n" : "") +
                         "        Kiss.dispatch(emitter, __event);\n" +
                         "    }\n" +
                         "}, \"id\", \"serial\")",
