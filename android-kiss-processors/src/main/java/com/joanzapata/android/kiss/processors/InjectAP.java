@@ -92,8 +92,11 @@ public class InjectAP extends AbstractProcessor {
             // Generates "public final class XXXInjector extends Injector<XXX>"
             writer.emitPackage(packageName)
                     .emitImports(Kiss.class, Injector.class, BaseEvent.class)
+                    .emitImports("android.os.Handler", "android.os.Looper")
                     .emitEmptyLine()
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
+                    .emitEmptyLine()
+                    .emitField("Handler", "__handler", of(PRIVATE), "new Handler(Looper.getMainLooper())")
                     .emitEmptyLine();
 
             // Generates "protected void inject(XXX target) { ..."
@@ -113,7 +116,7 @@ public class InjectAP extends AbstractProcessor {
 
             // Generates "protected void dispatch(XXX target, BaseEvent event)"
             writer.emitAnnotation(Override.class)
-                    .beginMethod("void", "dispatch", of(PROTECTED), simpleName, "target", BaseEvent.class.getSimpleName(), "event");
+                    .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + BaseEvent.class.getSimpleName(), "event");
 
             // Here, dispatch events to methods
             List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, Result.class);
@@ -139,7 +142,14 @@ public class InjectAP extends AbstractProcessor {
                 // Write the code to call the user method
                 if (checkEmitter) writer.beginControlFlow("if (event.getEmitter() == getTarget())");
                 writer.beginControlFlow("if (event instanceof %s)", eventType)
-                        .emitStatement("target.%s((%s) event)", annotatedMethod.getSimpleName(), eventType)
+                        .emitStatement("__handler.post(new Runnable() {\n" +
+                                        "    @Override\n" +
+                                        "    public void run() {\n" +
+                                        "        target.%s((%s) event);\n" +
+                                        "    }\n" +
+                                        "})\n",
+                                annotatedMethod.getSimpleName(), eventType
+                        )
                         .endControlFlow();
                 if (checkEmitter) writer.endControlFlow();
             }
