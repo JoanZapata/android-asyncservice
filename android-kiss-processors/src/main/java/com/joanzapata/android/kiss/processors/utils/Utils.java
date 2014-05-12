@@ -78,9 +78,28 @@ public class Utils {
     public static String formatParametersForCall(ExecutableElement method) {
         StringBuilder builder = new StringBuilder();
         for (VariableElement var : method.getParameters()) {
-            builder.append(var.getSimpleName().toString());
+            builder.append(var.getSimpleName().toString()).append(",");
         }
-        if (builder.length() > 0) builder.substring(0, builder.length() - 1);
+
+        // Remove the last ,
+        if (builder.length() > 0)
+            return builder.substring(0, builder.length() - 1);
+        return builder.toString();
+    }
+
+    /**
+     * Get the method parameters in the form of
+     * "{name1}, {name2}", etc...
+     */
+    public static String formatParametersForCacheKey(ExecutableElement method) {
+        StringBuilder builder = new StringBuilder();
+        for (VariableElement var : method.getParameters()) {
+            builder.append("{").append(var.getSimpleName().toString()).append("},");
+        }
+
+        // Remove the last ,
+        if (builder.length() > 0)
+            return builder.substring(0, builder.length() - 1);
         return builder.toString();
     }
 
@@ -159,4 +178,12 @@ public class Utils {
         return null;
     }
 
+    /**
+     * something({x}, {y}) => "something(" + x + ", " + y + ")"
+     */
+    public static String parseCacheKeyValue(String annotationCacheToParse) {
+        return "\"" + annotationCacheToParse
+                .replace("{", "\" + ")
+                .replace("}", "+ \"") + "\"";
+    }
 }
