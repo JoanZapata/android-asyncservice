@@ -70,7 +70,7 @@ public class KissServiceAP extends AbstractProcessor {
                 String newElementName = elementName + GENERATED_CLASS_SUFFIX;
                 String targetFile = ((TypeElement) minimServiceElement).getQualifiedName() + GENERATED_CLASS_SUFFIX;
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
-                logger.note(classFile.toUri().toString());
+                logger.note("Writing " + classFile.toUri().getRawPath());
                 Writer out = classFile.openWriter();
                 JavaWriter writer = new JavaWriter(out);
 
