@@ -169,6 +169,7 @@ public class Utils {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T getAnnotationValue(AnnotationMirror annotationMirror, String key) {
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
             if (entry.getKey().getSimpleName().toString().equals(key)) {

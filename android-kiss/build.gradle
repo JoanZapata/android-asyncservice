@@ -3,6 +3,7 @@ apply plugin: 'android-library'
 dependencies {
     compile 'com.snappydb:snappydb-api:0.2.+'
     compile project(':android-kiss-api')
+    compile project(':android-kiss-processors')
 }
 
 android {

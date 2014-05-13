@@ -1,1 +1,1 @@
-include 'android-kiss-processors', 'android-kiss-snappydb', 'android-kiss-api', 'android-kiss-demo'
+include 'android-kiss-api', 'android-kiss-processors', 'android-kiss', 'android-kiss-demo'

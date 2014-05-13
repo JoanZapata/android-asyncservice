@@ -22,7 +22,7 @@ public abstract class BaseEvent implements Serializable {
 
     private boolean cached;
 
-    private WeakReference emitter;
+    private WeakReference<Object> emitter;
 
     /**
      * Contains a description of the query,
@@ -53,6 +53,6 @@ public abstract class BaseEvent implements Serializable {
     }
 
     public void setEmitter(Object emitter) {
-        this.emitter = new WeakReference(emitter);
+        this.emitter = new WeakReference<Object>(emitter);
     }
 }
