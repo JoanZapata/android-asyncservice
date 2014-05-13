@@ -118,10 +118,11 @@ public class KissServiceAP extends AbstractProcessor {
         AnnotationMirror cachedAnnotation = getAnnotation(method, Cached.class);
         boolean isCached = cachedAnnotation != null;
         String annotationCacheToParse = null;
+        String cacheValueFromMethodSignatureToParse = defineKeyFromMethod(method);
         if (isCached) {
             String annotationValue = getAnnotationValue(cachedAnnotation, "key");
             annotationCacheToParse = annotationValue == null ?
-                    defineKeyFromMethod(method) : annotationValue;
+                    cacheValueFromMethodSignatureToParse : annotationValue;
         }
 
         // Start the mimic method
@@ -132,20 +133,28 @@ public class KissServiceAP extends AbstractProcessor {
                         method.getModifiers(),
                         Utils.formatParameters(method, true), null);
 
-        // Check the cache
-        if (isCached)
-            classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse))
-                    .emitStatement("BaseEvent cache = KissCache.get(cacheKey, %s.class)", method.getReturnType().toString())
-                    .emitStatement("if (cache != null) Kiss.dispatch(emitter, cache.cached())");
+        // Check the cache in a background thread
+        classWriter.emitField("String", "callId", of(FINAL), parseCacheKeyValue(cacheValueFromMethodSignatureToParse));
 
-        // Delegate the call to the user method
+        if (isCached) {
+            classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
+            classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
+                    "    public void run() {\n" +
+                    "        BaseEvent cache = KissCache.get(cacheKey, %s.class);\n" +
+                    "        if (cache != null) Kiss.dispatch(emitter, cache.cached());\n" +
+                    "    }\n" +
+                    "}, callId, \"cache\")", method.getReturnType().toString());
+        }
+
+        // TODO If a similar task was already running/scheduled on the same serial, only check the cache.
+        // Delegate the call to the user method in a background thread
         classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
                         "    public void run() {\n" +
                         "        BaseEvent __event = %s.super.%s(%s);\n" +
                         (isCached ? "        if (__event != null) KissCache.store(cacheKey, __event);\n" : "") +
                         "        Kiss.dispatch(emitter, __event);\n" +
                         "    }\n" +
-                        "}, \"id\", \"serial\")",
+                        "}, callId, \"serial\")",
                 newElementName,
                 method.getSimpleName(),
                 Utils.formatParametersForCall(method)
@@ -156,6 +165,10 @@ public class KissServiceAP extends AbstractProcessor {
 
     }
 
+    /**
+     * @param method The method to find a key for.
+     * @return "class_name.method_name(param_value1, [param_value2, ...])"
+     */
     private String defineKeyFromMethod(ExecutableElement method) {
         String className = method.getEnclosingElement().getSimpleName().toString();
         String methodName = method.getSimpleName().toString();
