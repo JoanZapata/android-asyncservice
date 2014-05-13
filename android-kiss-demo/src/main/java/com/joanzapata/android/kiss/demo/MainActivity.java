@@ -18,6 +18,7 @@ package com.joanzapata.android.kiss.demo;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import com.joanzap.android.kiss.demo.R;
 import com.joanzapata.android.kiss.api.annotation.InjectService;
@@ -40,14 +41,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        text = (TextView) findViewById(R.id.text);
         Kiss.inject(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        service.getUserAsyncWithCache(3L);
+        text = (TextView) findViewById(R.id.text);
+        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                service.getUserAsyncWithCache(3L);
+            }
+        });
     }
 
     /*

@@ -38,6 +38,7 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -91,12 +92,14 @@ public class InjectAP extends AbstractProcessor {
 
             // Generates "public final class XXXInjector extends Injector<XXX>"
             writer.emitPackage(packageName)
-                    .emitImports(Kiss.class, Injector.class, BaseEvent.class)
-                    .emitImports("android.os.Handler", "android.os.Looper")
+                    .emitImports(Kiss.class, Injector.class, BaseEvent.class, Set.class, HashSet.class)
+                    .emitImports("android.os.Handler", "android.os.Looper", "android.util.Log")
                     .emitEmptyLine()
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
                     .emitEmptyLine()
-                    .emitField("Handler", "__handler", of(PRIVATE), "new Handler(Looper.getMainLooper())")
+                    .emitField("Handler", "__handler", of(PRIVATE, FINAL), "new Handler(Looper.getMainLooper())")
+                    .emitEmptyLine()
+                    .emitField("Set<String>", "__receivedFinalResponses", of(PRIVATE, FINAL), "new HashSet<String>()")
                     .emitEmptyLine();
 
             // Generates "protected void inject(XXX target) { ..."
@@ -117,6 +120,11 @@ public class InjectAP extends AbstractProcessor {
             // Generates "protected void dispatch(XXX target, BaseEvent event)"
             writer.emitAnnotation(Override.class)
                     .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + BaseEvent.class.getSimpleName(), "event");
+
+            // Once the user has received a "remote" result, make sure no cache is sent anymore
+            writer.emitField("boolean", "__hasBeenReceivedAlready", of(FINAL), "__receivedFinalResponses.contains(event.getQuery())")
+                    .emitStatement("if (event.isCached() && __hasBeenReceivedAlready) return")
+                    .emitStatement("if (!__hasBeenReceivedAlready && !event.isCached()) __receivedFinalResponses.add(event.getQuery())");
 
             // Here, dispatch events to methods
             List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, Result.class);
