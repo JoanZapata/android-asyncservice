@@ -15,8 +15,12 @@
  */
 package com.joanzapata.android.kiss.demo;
 
+import android.content.Context;
+import android.widget.Toast;
+import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
 import com.joanzapata.android.kiss.api.annotation.KissService;
+import com.joanzapata.android.kiss.api.annotation.Ui;
 import com.joanzapata.android.kiss.demo.event.UserEvent;
 
 import static android.text.format.DateUtils.DAY_IN_MILLIS;
@@ -24,6 +28,13 @@ import static com.joanzapata.android.kiss.api.annotation.Cached.Usage.CACHE_ONLY
 
 @KissService
 public class DemoService {
+
+    /*
+        If you need a context you can inject
+        the application context here.
+    */
+    @ApplicationContext
+    protected Context applicationContext;
 
     /*
         By default, methods are executed in a background thread.
@@ -44,7 +55,13 @@ public class DemoService {
     @Cached
     public UserEvent getUserAsyncWithCache(Long id) {
         sleep();
+        displayMessage("This is a toast displayed from the DemoService.");
         return new UserEvent(id, "Joan", 25);
+    }
+
+    @Ui
+    protected void displayMessage(String message) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show();
     }
 
     /*

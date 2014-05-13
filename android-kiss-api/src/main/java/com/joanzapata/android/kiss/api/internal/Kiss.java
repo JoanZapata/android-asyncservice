@@ -26,7 +26,7 @@ public final class Kiss {
 
     static final List<Injector> injectors = new ArrayList<Injector>();
 
-    static Context context;
+    public static Context context;
 
     /**
      * Inject @InjectService fields and activates

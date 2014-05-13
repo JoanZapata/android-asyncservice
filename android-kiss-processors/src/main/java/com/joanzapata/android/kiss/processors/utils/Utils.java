@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.*;
 
 public class Utils {
 
@@ -53,9 +53,9 @@ public class Utils {
     }
 
     /** Returns true if the given element is a package */
-    public static boolean isPublicMethod(Element elem) {
+    public static boolean isPublicOrProtectedMethod(Element elem) {
         return elem.getKind().equals(ElementKind.METHOD) &&
-                elem.getModifiers().contains(PUBLIC);
+                (elem.getModifiers().contains(PUBLIC) || elem.getModifiers().contains(PROTECTED));
     }
 
     /**
@@ -185,5 +185,11 @@ public class Utils {
         return "\"" + annotationCacheToParse
                 .replace("{", "\" + ")
                 .replace("}", "+ \"") + "\"";
+    }
+
+    public static boolean isPublicOrProtectedField(Element element) {
+        return element.getModifiers().contains(PUBLIC) ||
+                element.getModifiers().contains(PROTECTED);
+
     }
 }

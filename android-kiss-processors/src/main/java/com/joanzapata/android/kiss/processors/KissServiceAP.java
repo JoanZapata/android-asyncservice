@@ -16,8 +16,10 @@
 package com.joanzapata.android.kiss.processors;
 
 import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
 import com.joanzapata.android.kiss.api.annotation.KissService;
+import com.joanzapata.android.kiss.api.annotation.Ui;
 import com.joanzapata.android.kiss.api.internal.BackgroundExecutor;
 import com.joanzapata.android.kiss.api.internal.Kiss;
 import com.joanzapata.android.kiss.processors.utils.Logger;
@@ -33,9 +35,11 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.NoType;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Set;
 
 import static com.joanzapata.android.kiss.processors.utils.Utils.*;
@@ -72,12 +76,14 @@ public class KissServiceAP extends AbstractProcessor {
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
                 logger.note("Writing " + classFile.toUri().getRawPath());
                 Writer out = classFile.openWriter();
-                JavaWriter writer = new JavaWriter(out);
+                JavaWriter javaWriter = new JavaWriter(out);
 
                 // Start writing the file
-                JavaWriter classWriter = writer.emitPackage(elementPackage)
+                JavaWriter writer = javaWriter.emitPackage(elementPackage)
                         .emitImports(Kiss.class, BaseEvent.class, BackgroundExecutor.class)
                         .emitImports(
+                                "android.os.Handler",
+                                "android.os.Looper",
                                 minimServiceElement.toString(),
                                 "com.joanzapata.android.kiss.api.internal.KissCache",
                                 "android.content.Context")
@@ -85,23 +91,34 @@ public class KissServiceAP extends AbstractProcessor {
                         .beginType(newElementName, "class", of(PUBLIC, FINAL), minimServiceElement.toString());
 
                 // Create the emitter field
-                classWriter
-                        .emitEmptyLine()
+                writer.emitEmptyLine()
                         .emitField("Object", "emitter", of(PRIVATE, FINAL));
 
+                // Create the UI thread handler
+                writer.emitEmptyLine()
+                        .emitField("Handler", "__handler", of(PRIVATE, FINAL), "new Handler(Looper.getMainLooper())");
+
                 // Generate a public constructor
-                classWriter
-                        .emitEmptyLine()
+                writer.emitEmptyLine()
                         .beginConstructor(of(PUBLIC), "Object", "emitter")
-                        .emitStatement("this.emitter = emitter")
-                        .endConstructor();
+                        .emitStatement("this.emitter = emitter");
+
+                // If any @ApplicationContext, inject it here
+                List<Element> applicationContextFields = findElementsAnnotatedWith((TypeElement) minimServiceElement, ApplicationContext.class);
+                for (Element applicationContextField : applicationContextFields) {
+                    if (!isPublicOrProtectedField(applicationContextField))
+                        throw new IllegalStateException("@ApplicationContext fields should be either public or protected");
+                    writer.emitStatement("super.%s = Kiss.context", applicationContextField.getSimpleName());
+                }
+
+                writer.endConstructor();
 
                 // Manage each method
                 for (Element element : minimServiceElement.getEnclosedElements())
-                    if (Utils.isPublicMethod(element))
-                        createDelegateMethod(classWriter, (ExecutableElement) element, newElementName);
+                    if (isPublicOrProtectedMethod(element))
+                        createDelegateMethod(writer, (ExecutableElement) element, newElementName);
 
-                classWriter.endType();
+                writer.endType();
 
                 out.flush();
                 out.close();
@@ -117,6 +134,12 @@ public class KissServiceAP extends AbstractProcessor {
         // Find all needed values for @Cache if any
         AnnotationMirror cachedAnnotation = getAnnotation(method, Cached.class);
         boolean isCached = cachedAnnotation != null;
+        boolean isUiThread = getAnnotation(method, Ui.class) != null;
+        boolean hasResult = !(method.getReturnType() instanceof NoType);
+
+        if (isCached && !hasResult)
+            throw new IllegalStateException("@Cached method should have a return value");
+
         String annotationCacheToParse = null;
         String cacheValueFromMethodSignatureToParse = defineKeyFromMethod(method);
         if (isCached) {
@@ -134,7 +157,7 @@ public class KissServiceAP extends AbstractProcessor {
                         Utils.formatParameters(method, true), null);
 
         // Check the cache in a background thread
-        classWriter.emitField("String", "callId", of(FINAL), parseCacheKeyValue(cacheValueFromMethodSignatureToParse));
+        if (hasResult) classWriter.emitField("String", "callId", of(FINAL), parseCacheKeyValue(cacheValueFromMethodSignatureToParse));
 
         if (isCached) {
             classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
@@ -146,23 +169,56 @@ public class KissServiceAP extends AbstractProcessor {
                     "}, callId, \"cache\")", method.getReturnType().toString());
         }
 
+        String threadingPrefix = isUiThread ? "__handler.post(" : "BackgroundExecutor.execute(";
+        String threadingSuffix = isUiThread ? ")" : ", callId, \"serial\")";
+
         // TODO If a similar task was already running/scheduled on the same serial, only check the cache.
         // Delegate the call to the user method in a background thread
-        classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
-                        "    public void run() {\n" +
-                        "        BaseEvent __event = %s.super.%s(%s);\n" +
-                        "        __event.setQuery(callId);\n" +
-                        (isCached ? "        if (__event != null) KissCache.store(cacheKey, __event);\n" : "") +
-                        "        Kiss.dispatch(emitter, __event);\n" +
-                        "    }\n" +
-                        "}, callId, \"serial\")",
-                newElementName,
-                method.getSimpleName(),
-                Utils.formatParametersForCall(method)
-        )
+        if (isCached) {
+            // If cached with result
+            classWriter.emitStatement(threadingPrefix +
+                            "new Runnable() {\n" +
+                            "    public void run() {\n" +
+                            "        BaseEvent __event = %s.super.%s(%s);\n" +
+                            "        __event.setQuery(callId);\n" +
+                            "        if (__event != null) KissCache.store(cacheKey, __event);\n" +
+                            "        Kiss.dispatch(emitter, __event);\n" +
+                            "    }\n" +
+                            "}" + threadingSuffix,
+                    newElementName,
+                    method.getSimpleName(),
+                    formatParametersForCall(method)
+            );
+        } else if (hasResult) {
+            // If not cached, but with result
+            classWriter.emitStatement(threadingPrefix +
+                            "new Runnable() {\n" +
+                            "    public void run() {\n" +
+                            "        BaseEvent __event = %s.super.%s(%s);\n" +
+                            "        __event.setQuery(callId);\n" +
+                            "        Kiss.dispatch(emitter, __event);\n" +
+                            "    }\n" +
+                            "}" + threadingSuffix,
+                    newElementName,
+                    method.getSimpleName(),
+                    formatParametersForCall(method)
+            );
+        } else {
+            // If no cache, no result
+            classWriter.emitStatement(threadingPrefix +
+                            "new Runnable() {\n" +
+                            "    public void run() {\n" +
+                            "        %s.super.%s(%s);\n" +
+                            "    }\n" +
+                            "}" + threadingSuffix,
+                    newElementName,
+                    method.getSimpleName(),
+                    formatParametersForCall(method)
+            );
+        }
 
-                .emitStatement("return null")
-                .endMethod();
+        if (hasResult) classWriter.emitStatement("return null");
+        classWriter.endMethod();
 
     }
 

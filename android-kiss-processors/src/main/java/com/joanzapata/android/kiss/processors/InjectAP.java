@@ -93,7 +93,7 @@ public class InjectAP extends AbstractProcessor {
             // Generates "public final class XXXInjector extends Injector<XXX>"
             writer.emitPackage(packageName)
                     .emitImports(Kiss.class, Injector.class, BaseEvent.class, Set.class, HashSet.class)
-                    .emitImports("android.os.Handler", "android.os.Looper", "android.util.Log")
+                    .emitImports("android.os.Handler", "android.os.Looper")
                     .emitEmptyLine()
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
                     .emitEmptyLine()
