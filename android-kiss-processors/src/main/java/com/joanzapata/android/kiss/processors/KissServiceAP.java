@@ -151,6 +151,7 @@ public class KissServiceAP extends AbstractProcessor {
         classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
                         "    public void run() {\n" +
                         "        BaseEvent __event = %s.super.%s(%s);\n" +
+                        "        __event.setQuery(callId);\n" +
                         (isCached ? "        if (__event != null) KissCache.store(cacheKey, __event);\n" : "") +
                         "        Kiss.dispatch(emitter, __event);\n" +
                         "    }\n" +

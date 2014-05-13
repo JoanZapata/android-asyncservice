@@ -24,6 +24,13 @@ public abstract class BaseEvent implements Serializable {
 
     private WeakReference emitter;
 
+    /**
+     * Contains a description of the query,
+     * using class name, method name, and params,
+     * that generated this event as a response.
+     */
+    private String query;
+
     public boolean isCached() {
         return cached;
     }
@@ -31,6 +38,14 @@ public abstract class BaseEvent implements Serializable {
     public BaseEvent cached() {
         cached = true;
         return this;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public String getQuery() {
+        return query;
     }
 
     public Object getEmitter() {
