@@ -1,10 +1,12 @@
 apply plugin: 'android-library'
+apply plugin: 'android-maven'
 
 dependencies {
     compile 'com.snappydb:snappydb-api:0.2.+'
     compile project(':android-kiss-api')
     compile project(':android-kiss-processors')
 }
+
 
 android {
 
@@ -17,16 +19,43 @@ android {
     buildToolsVersion "19.0.3"
 }
 
-android.libraryVariants.all { variant ->
-    println("DOING JOB ON $name")
-    def name = variant.name
-    task "javadoc$name"(type: Javadoc) {
-        description = "Generates javadoc for build $name"
-        destinationDir = new File(destinationDir, variant.baseName)
-        source = files(variant.javaCompile.source)
-        classpath = files(android.plugin.runtimeJarList, variant.javaCompile.classpath)
-        exclude '**/R.html', '**/R.*.html'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            pom.project {
+                name 'android-kiss'
+                packaging 'aar'
+                description 'Kiss uses annotations to shorten the code to start asynchronous long running tasks and cache results'
+                url 'https://github.com/JoanZapata/android-kiss'
+
+                scm {
+                    url 'scm:git@github.com:JoanZapata/android-kiss.git'
+                    connection 'scm:git@github.com:JoanZapata/android-kiss.git'
+                    developerConnection 'scm:git@github.com:JoanZapata/android-kiss.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'joanzapata'
+                        name 'Joan Zapata'
+                    }
+                }
+            }
+        }
     }
 }
-
-//task javadoc(dependsOn: javadocDebug)

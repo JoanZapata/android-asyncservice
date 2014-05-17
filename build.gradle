@@ -1,26 +1,29 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
+        classpath 'com.github.dcendents:android-maven-plugin:1.0'
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.7.0'
         classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
 allprojects {
+
     repositories {
         mavenCentral()
     }
 
-    apply plugin: 'maven'
+
     apply plugin: 'signing'
     apply plugin: 'license'
 
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+
     group = 'com.joanzapata.android.kiss'
-    version = '0.0.1-alpha'
+    version = '0.0.2-SNAPSHOT'
 
     license {
         header rootProject.file('LICENSE')
@@ -29,45 +32,5 @@ allprojects {
 
     signing {
         sign configurations.archives
-    }
-
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                    authentication(userName: sonatypeUsername, password: sonatypePassword)
-                }
-
-                pom.project {
-                    name 'android-kiss'
-                    packaging 'jar'
-                    description 'Kiss uses annotations to shorten the code to start asynchronous long running tasks and cache results'
-                    url 'https://github.com/JoanZapata/android-kiss'
-
-                    scm {
-                        url 'scm:git@github.com:JoanZapata/android-kiss.git'
-                        connection 'scm:git@github.com:JoanZapata/android-kiss.git'
-                        developerConnection 'scm:git@github.com:JoanZapata/android-kiss.git'
-                    }
-
-                    licenses {
-                        license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution 'repo'
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id 'joanzapata'
-                            name 'Joan Zapata'
-                        }
-                    }
-                }
-            }
-        }
     }
 }
