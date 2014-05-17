@@ -8,7 +8,7 @@ dependencies {
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    from 'build/docs/javadoc'
+    from javadoc.destinationDir
 }
 
 task sourcesJar(type: Jar) {
@@ -20,7 +20,6 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
-
 
 uploadArchives {
     repositories {

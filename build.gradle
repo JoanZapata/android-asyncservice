@@ -15,7 +15,6 @@ allprojects {
         mavenCentral()
     }
 
-
     apply plugin: 'signing'
     apply plugin: 'license'
 
