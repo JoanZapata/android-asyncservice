@@ -2,4 +2,4 @@ language: android
 android:
   components:
     - build-tools-19.0.3
-task: "./gradlew build check"
+script: "./gradlew build check"
