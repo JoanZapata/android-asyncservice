@@ -13,4 +13,4 @@ before_install:
     - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 
     # Install required Android components.
-    - android update sdk --filter platform-tools,android-16,extra-android-support,$ANDROID_SDKS --no-ui --force
+    - android update sdk --all --filter platform-tools,android-16,extra-android-support,$ANDROID_SDKS --no-ui --force
