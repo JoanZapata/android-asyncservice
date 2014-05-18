@@ -14,6 +14,7 @@ android {
     }
     compileSdkVersion 19
     buildToolsVersion "19.0.3"
+    lintOptions.abortOnError false
 }
 
 task javadocDebug(type: Javadoc) {
