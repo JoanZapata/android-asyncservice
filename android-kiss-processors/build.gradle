@@ -3,7 +3,7 @@ apply plugin: 'maven'
 
 dependencies {
     compile project(':android-kiss-api')
-    compile 'com.squareup:javawriter:2.5.+'
+    compile 'com.squareup:javawriter:2.5.0'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

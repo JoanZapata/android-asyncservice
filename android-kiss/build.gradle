@@ -2,7 +2,7 @@ apply plugin: 'android-library'
 apply plugin: 'android-maven'
 
 dependencies {
-    compile 'com.snappydb:snappydb-api:0.2.+'
+    compile 'com.snappydb:snappydb-api:0.2.0'
     compile project(':android-kiss-api')
     compile project(':android-kiss-processors')
 }
@@ -48,6 +48,8 @@ uploadArchives {
             repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
                 authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
+
+            conf2ScopeMappings.addMapping(10, configurations.compile, 'compile')
 
             pom.project {
                 name 'android-kiss'
