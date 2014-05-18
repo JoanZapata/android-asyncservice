@@ -1,9 +1,18 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main.compileClasspath += configurations.provided
+}
+
 dependencies {
     compile project(':android-kiss-api')
-    compile 'com.squareup:javawriter:2.5.0'
+    provided 'com.squareup:javawriter:2.5.0'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
