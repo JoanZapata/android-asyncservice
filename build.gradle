@@ -32,4 +32,12 @@ allprojects {
     signing {
         sign configurations.archives
     }
+
+    signArchives.onlyIf { project.hasProperty('signing.keyId') }
+
+}
+
+if (!project.hasProperty('sonatypeUsername')) {
+    ext.sonatypeUsername = "---"
+    ext.sonatypePassword = "---"
 }
