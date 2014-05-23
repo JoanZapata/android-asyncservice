@@ -54,8 +54,7 @@ public class Utils {
 
     /** Returns true if the given element is a package */
     public static boolean isPublicOrProtectedMethod(Element elem) {
-        return elem.getKind().equals(ElementKind.METHOD) &&
-                (elem.getModifiers().contains(PUBLIC) || elem.getModifiers().contains(PROTECTED));
+        return isMethod(elem) && !elem.getModifiers().contains(PRIVATE);
     }
 
     /**
@@ -189,8 +188,36 @@ public class Utils {
     }
 
     public static boolean isPublicOrProtectedField(Element element) {
-        return element.getModifiers().contains(PUBLIC) ||
-                element.getModifiers().contains(PROTECTED);
+        return isField(element) && !element.getModifiers().contains(PRIVATE);
+    }
 
+    private static boolean isField(Element element) {
+        return element.getKind().equals(ElementKind.FIELD);
+    }
+
+    public static boolean isStatic(Element element) {
+        return element.getModifiers().contains(STATIC);
+    }
+
+    public static boolean isMethod(Element element) {
+        return element.getKind().equals(ElementKind.METHOD);
+    }
+
+    public static boolean isAnnotatedWith(ExecutableElement method, Class<? extends Annotation> annotationClass) {
+        return getAnnotation(method, annotationClass) != null;
+    }
+
+    public static boolean isPublicOrPackagePrivate(Element element) {
+        return isPublic(element) || isPackagePrivate(element);
+    }
+
+    private static boolean isPackagePrivate(Element element) {
+        return !element.getModifiers().contains(PRIVATE) &&
+                !element.getModifiers().contains(PUBLIC) &&
+                !element.getModifiers().contains(PROTECTED);
+    }
+
+    private static boolean isPublic(Element element) {
+        return element.getModifiers().contains(PUBLIC);
     }
 }

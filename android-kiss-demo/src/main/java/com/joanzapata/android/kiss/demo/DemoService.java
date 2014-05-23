@@ -19,6 +19,7 @@ import android.content.Context;
 import android.widget.Toast;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
+import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
 import com.joanzapata.android.kiss.api.annotation.Ui;
 import com.joanzapata.android.kiss.demo.event.UserEvent;
@@ -35,6 +36,16 @@ public class DemoService {
     */
     @ApplicationContext
     protected Context applicationContext;
+
+    @Init
+    static void initStatic() {
+        // Executed once for all services
+    }
+
+    @Init
+    void init() {
+        // Executed once for this service
+    }
 
     /*
         By default, methods are executed in a background thread.

@@ -18,6 +18,7 @@ package com.joanzapata.android.kiss.processors;
 import com.joanzapata.android.kiss.api.BaseEvent;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
+import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
 import com.joanzapata.android.kiss.api.annotation.Ui;
 import com.joanzapata.android.kiss.api.internal.BackgroundExecutor;
@@ -78,6 +79,10 @@ public class KissServiceAP extends AbstractProcessor {
                 Writer out = classFile.openWriter();
                 JavaWriter javaWriter = new JavaWriter(out);
 
+                // Spot all @Init annotated methods
+                List<Element> initMethods = findElementsAnnotatedWith((TypeElement) minimServiceElement, Init.class);
+                checkInitAnnotatedMethods(initMethods);
+
                 // Start writing the file
                 JavaWriter writer = javaWriter.emitPackage(elementPackage)
                         .emitImports(Kiss.class, BaseEvent.class, BackgroundExecutor.class)
@@ -98,6 +103,9 @@ public class KissServiceAP extends AbstractProcessor {
                 writer.emitEmptyLine()
                         .emitField("Handler", "__handler", of(PRIVATE, FINAL), "new Handler(Looper.getMainLooper())");
 
+                // Create flags for each @Init method
+                writeCallFlags(writer, initMethods);
+
                 // Generate a public constructor
                 writer.emitEmptyLine()
                         .beginConstructor(of(PUBLIC), "Object", "emitter")
@@ -108,14 +116,17 @@ public class KissServiceAP extends AbstractProcessor {
                 for (Element applicationContextField : applicationContextFields) {
                     if (!isPublicOrProtectedField(applicationContextField))
                         throw new IllegalStateException("@ApplicationContext fields should be either public or protected");
-                    writer.emitStatement("super.%s = Kiss.context", applicationContextField.getSimpleName());
+                    writer.emitStatement("%s = Kiss.context", applicationContextField.getSimpleName());
                 }
+
+                // Call all init methods if flag not set already
+                callInitMethods(writer, initMethods);
 
                 writer.endConstructor();
 
                 // Manage each method
                 for (Element element : minimServiceElement.getEnclosedElements())
-                    if (isPublicOrProtectedMethod(element))
+                    if (Utils.isMethod(element))
                         createDelegateMethod(writer, (ExecutableElement) element, newElementName);
 
                 writer.endType();
@@ -129,7 +140,34 @@ public class KissServiceAP extends AbstractProcessor {
         }
     }
 
+    private void callInitMethods(JavaWriter writer, List<Element> initMethods) throws IOException {
+        for (Element initMethod : initMethods) {
+            String methodName = initMethod.getSimpleName().toString();
+            if (isStatic(initMethod)) {
+                writer.beginControlFlow("if (!%s_called)", methodName)
+                        .emitStatement("%s_called = true", methodName)
+                        .emitStatement("%s()", methodName)
+                        .endControlFlow();
+            } else {
+                writer.emitStatement("%s()", methodName);
+            }
+        }
+
+    }
+
+    private void writeCallFlags(JavaWriter writer, List<Element> initMethods) throws IOException {
+        for (Element initMethod : initMethods) {
+            if (!isStatic(initMethod)) continue;
+            writer.emitEmptyLine()
+                    .emitField("boolean", initMethod.getSimpleName().toString() + "_called",
+                            isStatic(initMethod) ? of(PRIVATE, STATIC, VOLATILE) : of(PRIVATE, VOLATILE),
+                            "false");
+        }
+    }
+
     private void createDelegateMethod(JavaWriter classWriter, ExecutableElement method, String newElementName) throws IOException {
+        if (!isPublicOrProtectedMethod(method)) return;
+        if (isAnnotatedWith(method, Init.class)) return;
 
         // Find all needed values for @Cache if any
         AnnotationMirror cachedAnnotation = getAnnotation(method, Cached.class);
@@ -157,7 +195,7 @@ public class KissServiceAP extends AbstractProcessor {
                         Utils.formatParameters(method, true), null);
 
         // Check the cache in a background thread
-        if (hasResult) classWriter.emitField("String", "callId", of(FINAL), parseCacheKeyValue(cacheValueFromMethodSignatureToParse));
+        classWriter.emitField("String", "callId", of(FINAL), parseCacheKeyValue(cacheValueFromMethodSignatureToParse));
 
         if (isCached) {
             classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
@@ -231,6 +269,13 @@ public class KissServiceAP extends AbstractProcessor {
         String methodName = method.getSimpleName().toString();
         String args = Utils.formatParametersForCacheKey(method);
         return className + "." + methodName + "(" + args + ")";
+    }
 
+    private void checkInitAnnotatedMethods(List<Element> initMethods) {
+        for (Element initMethod : initMethods) {
+            if (!isPublicOrProtectedMethod(initMethod)) {
+                throw new IllegalArgumentException("@Init methods should be public or protected");
+            }
+        }
     }
 }
