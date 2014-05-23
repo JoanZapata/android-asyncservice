@@ -15,6 +15,7 @@
  */
 package com.joanzapata.android.kiss.processors;
 
+import com.joanzapata.android.kiss.api.BaseService;
 import com.joanzapata.android.kiss.api.Message;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
@@ -128,6 +129,25 @@ public class KissServiceAP extends AbstractProcessor {
                 for (Element element : minimServiceElement.getEnclosedElements())
                     if (Utils.isMethod(element))
                         createDelegateMethod(writer, (ExecutableElement) element, newElementName);
+
+                // Implement BaseService interface if needed
+                if (implementsInterface((TypeElement) minimServiceElement, BaseService.class)) {
+                    writer.emitEmptyLine()
+                            .emitAnnotation(Override.class)
+                            .beginMethod("<T extends Message> T", "getCachedMessage", of(PUBLIC), "String", "key", "Class<T>", "returnType")
+                            .emitStatement("return KissCache.get(key, returnType)")
+                            .endMethod()
+                            .emitEmptyLine()
+                            .emitAnnotation(Override.class)
+                            .beginMethod("void", "cacheMessage", of(PUBLIC), "String", "key", "Message", "object")
+                            .emitStatement("KissCache.store(key, object)")
+                            .endMethod()
+                            .emitEmptyLine()
+                            .emitAnnotation(Override.class)
+                            .beginMethod("void", "sendMessage", of(PUBLIC), "Message", "message")
+                            .emitStatement("Kiss.dispatch(emitter, message)")
+                            .endMethod();
+                }
 
                 writer.endType();
 

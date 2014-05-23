@@ -24,6 +24,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
@@ -219,5 +220,16 @@ public class Utils {
 
     private static boolean isPublic(Element element) {
         return element.getModifiers().contains(PUBLIC);
+    }
+
+    public static boolean implementsInterface(TypeElement minimServiceElement, Class<?> baseServiceClass) {
+        for (TypeMirror typeMirror : minimServiceElement.getInterfaces()) {
+            System.out.println("Compare " + typeMirror.toString() + " with " + baseServiceClass.getCanonicalName());
+            if (typeMirror.toString().equals(baseServiceClass.getCanonicalName())) {
+                return true;
+            }
+        }
+        return false;
+
     }
 }
