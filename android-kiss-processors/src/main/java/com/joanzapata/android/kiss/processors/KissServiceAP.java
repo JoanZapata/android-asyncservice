@@ -21,6 +21,7 @@ import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
 import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
+import com.joanzapata.android.kiss.api.annotation.Serial;
 import com.joanzapata.android.kiss.api.annotation.Ui;
 import com.joanzapata.android.kiss.api.internal.BackgroundExecutor;
 import com.joanzapata.android.kiss.api.internal.Kiss;
@@ -44,6 +45,7 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Set;
 
+import static com.joanzapata.android.kiss.api.annotation.Serial.*;
 import static com.joanzapata.android.kiss.processors.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
@@ -217,6 +219,10 @@ public class KissServiceAP extends AbstractProcessor {
         // Check the cache in a background thread
         classWriter.emitField("String", "callId", of(FINAL), parseCacheKeyValue(cacheValueFromMethodSignatureToParse));
 
+        // Define serial
+        AnnotationMirror annotation = Utils.getAnnotation(method, Serial.class);
+        String serial = annotation == null ? SERIAL_DEFAULT : (String) getAnnotationValue(annotation, "value");
+
         if (isCached) {
             classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
             classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
@@ -224,11 +230,11 @@ public class KissServiceAP extends AbstractProcessor {
                     "        Message cache = KissCache.get(cacheKey, %s.class);\n" +
                     "        if (cache != null) Kiss.dispatch(emitter, cache.cached());\n" +
                     "    }\n" +
-                    "}, callId, \"cache\")", method.getReturnType().toString());
+                    "}, callId, \"%s\")", method.getReturnType().toString(), SERIAL_CHECK_CACHE);
         }
 
-        String threadingPrefix = isUiThread ? "__handler.post(" : "BackgroundExecutor.execute(";
-        String threadingSuffix = isUiThread ? ")" : ", callId, \"serial\")";
+        String threadingPrefix = isUiThread ? "__handler.post(" : "BackgroundExecutor.execute(\n";
+        String threadingSuffix = isUiThread ? ")" : ", callId, \"%s\")";
 
         // TODO If a similar task was already running/scheduled on the same serial, only check the cache.
         // Delegate the call to the user method in a background thread
@@ -246,7 +252,8 @@ public class KissServiceAP extends AbstractProcessor {
                             "}" + threadingSuffix,
                     newElementName,
                     method.getSimpleName(),
-                    formatParametersForCall(method)
+                    formatParametersForCall(method),
+                    serial
             );
         } else if (hasResult) {
             // If not cached, but with result
@@ -261,7 +268,8 @@ public class KissServiceAP extends AbstractProcessor {
                             "}" + threadingSuffix,
                     newElementName,
                     method.getSimpleName(),
-                    formatParametersForCall(method)
+                    formatParametersForCall(method),
+                    serial
             );
         } else {
             // If no cache, no result
@@ -273,7 +281,8 @@ public class KissServiceAP extends AbstractProcessor {
                             "}" + threadingSuffix,
                     newElementName,
                     method.getSimpleName(),
-                    formatParametersForCall(method)
+                    formatParametersForCall(method),
+                    serial
             );
         }
 
