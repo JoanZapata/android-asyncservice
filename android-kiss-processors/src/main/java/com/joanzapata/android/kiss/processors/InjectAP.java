@@ -15,9 +15,9 @@
  */
 package com.joanzapata.android.kiss.processors;
 
-import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.Message;
 import com.joanzapata.android.kiss.api.annotation.InjectService;
-import com.joanzapata.android.kiss.api.annotation.Result;
+import com.joanzapata.android.kiss.api.annotation.OnMessage;
 import com.joanzapata.android.kiss.api.internal.Injector;
 import com.joanzapata.android.kiss.api.internal.Kiss;
 import com.joanzapata.android.kiss.processors.utils.Logger;
@@ -42,7 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.joanzapata.android.kiss.api.annotation.Result.Sender.ALL;
+import static com.joanzapata.android.kiss.api.annotation.OnMessage.Sender.ALL;
 import static com.joanzapata.android.kiss.processors.utils.Utils.*;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
@@ -92,7 +92,7 @@ public class InjectAP extends AbstractProcessor {
 
             // Generates "public final class XXXInjector extends Injector<XXX>"
             writer.emitPackage(packageName)
-                    .emitImports(Kiss.class, Injector.class, BaseEvent.class, Set.class, HashSet.class)
+                    .emitImports(Kiss.class, Injector.class, Message.class, Set.class, HashSet.class)
                     .emitImports("android.os.Handler", "android.os.Looper")
                     .emitEmptyLine()
                     .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
@@ -117,9 +117,9 @@ public class InjectAP extends AbstractProcessor {
             // End of inject()
             writer.endMethod().emitEmptyLine();
 
-            // Generates "protected void dispatch(XXX target, BaseEvent event)"
+            // Generates "protected void dispatch(XXX target, Message event)"
             writer.emitAnnotation(Override.class)
-                    .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + BaseEvent.class.getSimpleName(), "event");
+                    .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + Message.class.getSimpleName(), "event");
 
             // Once the user has received a "remote" result, make sure no cache is sent anymore
             writer.emitField("boolean", "__hasBeenReceivedAlready", of(FINAL), "__receivedFinalResponses.contains(event.getQuery())")
@@ -127,7 +127,7 @@ public class InjectAP extends AbstractProcessor {
                     .emitStatement("if (!__hasBeenReceivedAlready && !event.isCached()) __receivedFinalResponses.add(event.getQuery())");
 
             // Here, dispatch events to methods
-            List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, Result.class);
+            List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, OnMessage.class);
             for (Element responseReceiver : responseReceivers) {
                 ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
                 List<? extends VariableElement> parameters = annotatedMethod.getParameters();
@@ -139,13 +139,13 @@ public class InjectAP extends AbstractProcessor {
                 if (hasArg) {
                     eventType = parameters.get(0).asType().toString();
                 } else {
-                    DeclaredType parameterTypeClass = getAnnotationValue(getAnnotation(annotatedMethod, Result.class), "value");
+                    DeclaredType parameterTypeClass = getAnnotationValue(getAnnotation(annotatedMethod, OnMessage.class), "value");
                     assertThat(parameterTypeClass != null, "@InjectResponse on a no-arg method should have a value.");
                     eventType = parameterTypeClass.toString();
                 }
 
                 // Define whether we should check emitter or not dependeing on the annotation value
-                VariableElement from = getAnnotationValue(getAnnotation(annotatedMethod, Result.class), "from");
+                VariableElement from = getAnnotationValue(getAnnotation(annotatedMethod, OnMessage.class), "from");
                 boolean checkEmitter = !ALL.toString().equals("" + from);
 
                 // Write the code to call the user method

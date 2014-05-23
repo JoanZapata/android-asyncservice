@@ -16,7 +16,7 @@
 package com.joanzapata.android.kiss.api.internal;
 
 import android.content.Context;
-import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +81,7 @@ public final class Kiss {
     }
 
     /** Dispatch an event, application wide. */
-    public static void dispatch(Object emitter, BaseEvent event) {
+    public static void dispatch(Object emitter, Message event) {
         event.setEmitter(emitter);
 
         // Loop through injectors

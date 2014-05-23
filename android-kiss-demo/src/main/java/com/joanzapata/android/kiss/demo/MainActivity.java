@@ -22,11 +22,11 @@ import android.view.View;
 import android.widget.TextView;
 import com.joanzap.android.kiss.demo.R;
 import com.joanzapata.android.kiss.api.annotation.InjectService;
-import com.joanzapata.android.kiss.api.annotation.Result;
+import com.joanzapata.android.kiss.api.annotation.OnMessage;
 import com.joanzapata.android.kiss.api.internal.Kiss;
 import com.joanzapata.android.kiss.demo.event.UserEvent;
 
-import static com.joanzapata.android.kiss.api.annotation.Result.Sender.ALL;
+import static com.joanzapata.android.kiss.api.annotation.OnMessage.Sender.ALL;
 
 public class MainActivity extends Activity {
 
@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
         We will never receive a cached result AFTER a real result, even if we call getUserAsyncWithCache()
         multiple times.
      */
-    @Result
+    @OnMessage
     public void onUserFetched(UserEvent e) {
         text.setText((e.isCached() ? "(cached)\n" : "")
                 + e.getName() + " "
@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
         but don't actually use it. So just use a no-arg method
         with the event type in the annotation.
      */
-    @Result(UserEvent.class)
+    @OnMessage(UserEvent.class)
     public void onUserFetched() {
         Log.i(TAG, "User fetched !");
     }
@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
          which service the method was called on, you can use
          from = ALL.
      */
-    @Result(from = ALL)
+    @OnMessage(from = ALL)
     public void onUserFetchedFromAnywhere(UserEvent e) {
         Log.i(TAG, "User fetched from anywhere !");
     }

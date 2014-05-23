@@ -15,9 +15,9 @@
  */
 package com.joanzapata.android.kiss.demo.event;
 
-import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.Message;
 
-public class UserEvent extends BaseEvent {
+public class UserEvent extends Message {
 
     private Long id;
 

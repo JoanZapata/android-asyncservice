@@ -15,7 +15,7 @@
  */
 package com.joanzapata.android.kiss.api.internal;
 
-import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.Message;
 
 import java.lang.ref.WeakReference;
 
@@ -38,7 +38,7 @@ public abstract class Injector<T> {
      * false otherwise. In case of false, this object should
      * not be called anymore.
      */
-    boolean dispatch(BaseEvent event) {
+    boolean dispatch(Message event) {
         T targetObject = target.get();
         if (targetObject == null) return false;
         dispatch(targetObject, event);
@@ -47,5 +47,5 @@ public abstract class Injector<T> {
 
     protected abstract void inject(T injectable);
 
-    protected abstract void dispatch(T target, BaseEvent event);
+    protected abstract void dispatch(T target, Message event);
 }

@@ -15,7 +15,7 @@
  */
 package com.joanzapata.android.kiss.processors;
 
-import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.Message;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
 import com.joanzapata.android.kiss.api.annotation.Init;
@@ -85,7 +85,7 @@ public class KissServiceAP extends AbstractProcessor {
 
                 // Start writing the file
                 JavaWriter writer = javaWriter.emitPackage(elementPackage)
-                        .emitImports(Kiss.class, BaseEvent.class, BackgroundExecutor.class)
+                        .emitImports(Kiss.class, Message.class, BackgroundExecutor.class)
                         .emitImports(
                                 "android.os.Handler",
                                 "android.os.Looper",
@@ -201,7 +201,7 @@ public class KissServiceAP extends AbstractProcessor {
             classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
             classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
                     "    public void run() {\n" +
-                    "        BaseEvent cache = KissCache.get(cacheKey, %s.class);\n" +
+                    "        Message cache = KissCache.get(cacheKey, %s.class);\n" +
                     "        if (cache != null) Kiss.dispatch(emitter, cache.cached());\n" +
                     "    }\n" +
                     "}, callId, \"cache\")", method.getReturnType().toString());
@@ -217,7 +217,8 @@ public class KissServiceAP extends AbstractProcessor {
             classWriter.emitStatement(threadingPrefix +
                             "new Runnable() {\n" +
                             "    public void run() {\n" +
-                            "        BaseEvent __event = %s.super.%s(%s);\n" +
+                            "        Message __event = %s.super.%s(%s);\n" +
+                            "        if (__event == null) return;\n" +
                             "        __event.setQuery(callId);\n" +
                             "        if (__event != null) KissCache.store(cacheKey, __event);\n" +
                             "        Kiss.dispatch(emitter, __event);\n" +
@@ -232,7 +233,8 @@ public class KissServiceAP extends AbstractProcessor {
             classWriter.emitStatement(threadingPrefix +
                             "new Runnable() {\n" +
                             "    public void run() {\n" +
-                            "        BaseEvent __event = %s.super.%s(%s);\n" +
+                            "        Message __event = %s.super.%s(%s);\n" +
+                            "        if (__event == null) return;\n" +
                             "        __event.setQuery(callId);\n" +
                             "        Kiss.dispatch(emitter, __event);\n" +
                             "    }\n" +

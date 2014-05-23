@@ -16,7 +16,7 @@
 package com.joanzapata.android.kiss.api.internal;
 
 import android.util.Log;
-import com.joanzapata.android.kiss.api.BaseEvent;
+import com.joanzapata.android.kiss.api.Message;
 import com.snappydb.internal.DBImpl;
 
 import java.io.File;
@@ -53,7 +53,7 @@ public final class KissCache {
         }
     }
 
-    public static void store(String key, BaseEvent object) {
+    public static void store(String key, Message object) {
         if (!isReady()) return;
 
         try {
@@ -69,7 +69,7 @@ public final class KissCache {
 
     }
 
-    public static <T extends BaseEvent> T get(String key, Class<T> expectedClass) {
+    public static <T extends Message> T get(String key, Class<T> expectedClass) {
         if (!isReady()) return null;
         try {
 
