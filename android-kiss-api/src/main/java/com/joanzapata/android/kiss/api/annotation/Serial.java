@@ -31,4 +31,3 @@ public @interface Serial {
     String value() default SERIAL_DEFAULT;
 
 }
- a
