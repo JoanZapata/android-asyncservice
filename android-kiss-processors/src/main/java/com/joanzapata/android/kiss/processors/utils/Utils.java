@@ -160,7 +160,7 @@ public class Utils {
         if (!condition) throw new IllegalArgumentException(errorMessage);
     }
 
-    public static AnnotationMirror getAnnotation(ExecutableElement element, Class<? extends Annotation> annotationClass) {
+    public static AnnotationMirror getAnnotation(Element element, Class<? extends Annotation> annotationClass) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
             if (annotationMirror.getAnnotationType().toString().equals(annotationClass.getName())) {
                 return annotationMirror;
@@ -231,5 +231,9 @@ public class Utils {
         }
         return false;
 
+    }
+
+    public static boolean isConstructor(Element element) {
+        return element.getKind().equals(ElementKind.CONSTRUCTOR);
     }
 }

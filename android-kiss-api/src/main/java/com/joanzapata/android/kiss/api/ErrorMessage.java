@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.joanzapata.android.kiss.api.annotation;
+package com.joanzapata.android.kiss.api;
 
-import com.joanzapata.android.kiss.api.ErrorMapper;
+public class ErrorMessage extends Message {
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+    private final Throwable throwable;
 
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-public @interface KissService {
+    public ErrorMessage(Throwable throwable) {
+        this.throwable = throwable;
+    }
 
-    /**
-     * Submit your custom error mapper implementation
-     * to support error management on your Kiss service methods.
-     */
-    Class<? extends ErrorMapper> errorMapper() default ErrorMapper.DefaultErrorMapper.class;
-
+    public Throwable getThrowable() {
+        return throwable;
+    }
 }

@@ -15,21 +15,19 @@
  */
 package com.joanzapata.android.kiss.api.annotation;
 
-import com.joanzapata.android.kiss.api.ErrorMapper;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * User this annotation in an ErrorMessage constructor.
+ */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-public @interface KissService {
+@Target(ElementType.PARAMETER)
+public @interface ThrowerParam {
 
-    /**
-     * Submit your custom error mapper implementation
-     * to support error management on your Kiss service methods.
-     */
-    Class<? extends ErrorMapper> errorMapper() default ErrorMapper.DefaultErrorMapper.class;
+    /** The name of the parameter in the method that threw this exception */
+    String value();
 
 }
