@@ -41,6 +41,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.NoType;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
@@ -238,53 +239,45 @@ public class KissServiceAP extends AbstractProcessor {
 
         // TODO If a similar task was already running/scheduled on the same serial, only check the cache.
         // Delegate the call to the user method in a background thread
+        String runnableCode = null;
+        StringWriter buffer = new StringWriter();
+        JavaWriter inner = new JavaWriter(buffer);
+        inner.emitPackage("");
+        inner.beginType("Runnable()", "new");
+        inner.emitAnnotation("Override");
+        inner.beginMethod("void", "run", of(PUBLIC));
+
         if (isCached) {
             // If cached with result
-            classWriter.emitStatement(threadingPrefix +
-                            "new Runnable() {\n" +
-                            "    public void run() {\n" +
-                            "        Message __event = %s.super.%s(%s);\n" +
-                            "        if (__event == null) return;\n" +
-                            "        __event.setQuery(callId);\n" +
-                            "        if (__event != null) KissCache.store(cacheKey, __event);\n" +
-                            "        Kiss.dispatch(emitter, __event);\n" +
-                            "    }\n" +
-                            "}" + threadingSuffix,
+            inner.emitStatement("Message __event = %s.super.%s(%s)",
                     newElementName,
                     method.getSimpleName(),
-                    formatParametersForCall(method),
-                    serial
-            );
+                    formatParametersForCall(method))
+                    .emitStatement("if (__event == null) return")
+                    .emitStatement("__event.setQuery(callId)")
+                    .emitStatement("if (__event != null) KissCache.store(cacheKey, __event)")
+                    .emitStatement("Kiss.dispatch(emitter, __event)");
+
         } else if (hasResult) {
             // If not cached, but with result
-            classWriter.emitStatement(threadingPrefix +
-                            "new Runnable() {\n" +
-                            "    public void run() {\n" +
-                            "        Message __event = %s.super.%s(%s);\n" +
-                            "        if (__event == null) return;\n" +
-                            "        __event.setQuery(callId);\n" +
-                            "        Kiss.dispatch(emitter, __event);\n" +
-                            "    }\n" +
-                            "}" + threadingSuffix,
-                    newElementName,
+            inner.emitStatement("Message __event = %s.super.%s(%s)", newElementName,
                     method.getSimpleName(),
-                    formatParametersForCall(method),
-                    serial
-            );
+                    formatParametersForCall(method))
+                    .emitStatement("if (__event == null) return")
+                    .emitStatement("__event.setQuery(callId)")
+                    .emitStatement("Kiss.dispatch(emitter, __event)");
+
         } else {
             // If no cache, no result
-            classWriter.emitStatement(threadingPrefix +
-                            "new Runnable() {\n" +
-                            "    public void run() {\n" +
-                            "        %s.super.%s(%s);\n" +
-                            "    }\n" +
-                            "}" + threadingSuffix,
-                    newElementName,
+            inner.emitStatement("%s.super.%s(%s)", newElementName,
                     method.getSimpleName(),
-                    formatParametersForCall(method),
-                    serial
-            );
+                    formatParametersForCall(method));
         }
+
+        inner.endMethod();
+        inner.endType();
+        runnableCode = buffer.toString();
+        classWriter.emitStatement(threadingPrefix + runnableCode + threadingSuffix, serial);
 
         if (hasResult) classWriter.emitStatement("return null");
         classWriter.endMethod();
