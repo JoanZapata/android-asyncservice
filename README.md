@@ -8,7 +8,6 @@
 
 ## Sample
 
-**DemoService.java**
 ```java 
 @KissService
 public class DemoService {
@@ -21,7 +20,6 @@ public class DemoService {
 }
 ```
 
-**DemoActivity.java**
 ```java
 public class DemoActivity extends Activity {
 
