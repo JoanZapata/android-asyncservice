@@ -51,7 +51,7 @@ Kiss is hosted on Maven Central, just add this line to your gradle dependencies:
 compile('com.joanzapata.android.kiss:android-kiss:0.0.+@aar') { transitive = true }
 ```
 
-# [Get started](https://github.com/JoanZapata/android-kiss/wiki/Introduction)
+# [Get started](https://github.com/JoanZapata/android-kiss/wiki)
 
 ## License
 
