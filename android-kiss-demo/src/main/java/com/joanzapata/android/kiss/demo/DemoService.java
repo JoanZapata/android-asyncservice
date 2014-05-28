@@ -37,7 +37,7 @@ public class DemoService {
         the application context here.
     */
     @ApplicationContext
-    protected Context applicationContext;
+    static Context applicationContext;
 
     @Init
     static void initStatic() {
@@ -45,7 +45,7 @@ public class DemoService {
     }
 
     @Init
-    void init() {
+    static void init() {
         // Executed once for this service
     }
 

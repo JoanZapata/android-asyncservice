@@ -77,6 +77,11 @@ public class KissServiceAP extends AbstractProcessor {
             for (Element minimServiceElement : minimServices) {
                 logger.note("Processing @KissService on " + minimServiceElement);
 
+                // Make sure all fields are static
+                for (Element element : minimServiceElement.getEnclosedElements())
+                    if (isField(element) && !isStatic(element))
+                        throw new IllegalArgumentException("All fields in @KissService should be static, " + element.getSimpleName() + " is not.");
+
                 // Get name and package
                 String elementName = minimServiceElement.getSimpleName().toString();
                 String elementPackage = Utils.getElementPackageName(minimServiceElement);
@@ -186,21 +191,17 @@ public class KissServiceAP extends AbstractProcessor {
     private void callInitMethods(JavaWriter writer, List<Element> initMethods) throws IOException {
         for (Element initMethod : initMethods) {
             String methodName = initMethod.getSimpleName().toString();
-            if (isStatic(initMethod)) {
-                writer.beginControlFlow("if (!%s_called)", methodName)
-                        .emitStatement("%s_called = true", methodName)
-                        .emitStatement("%s()", methodName)
-                        .endControlFlow();
-            } else {
-                writer.emitStatement("%s()", methodName);
-            }
+            writer.beginControlFlow("if (!%s_called)", methodName)
+                    .emitStatement("%s_called = true", methodName)
+                    .emitStatement("%s()", methodName)
+                    .endControlFlow();
         }
 
     }
 
     private void writeCallFlags(JavaWriter writer, List<Element> initMethods) throws IOException {
         for (Element initMethod : initMethods) {
-            if (!isStatic(initMethod)) continue;
+            if (!isStatic(initMethod)) throw new IllegalArgumentException("@Init method " + initMethod.getSimpleName() + " should be static");
             writer.emitEmptyLine()
                     .emitField("boolean", initMethod.getSimpleName().toString() + "_called",
                             isStatic(initMethod) ? of(PRIVATE, STATIC, VOLATILE) : of(PRIVATE, VOLATILE),

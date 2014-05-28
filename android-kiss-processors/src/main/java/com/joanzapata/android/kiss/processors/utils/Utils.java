@@ -192,7 +192,7 @@ public class Utils {
         return isField(element) && !element.getModifiers().contains(PRIVATE);
     }
 
-    private static boolean isField(Element element) {
+    public static boolean isField(Element element) {
         return element.getKind().equals(ElementKind.FIELD);
     }
 
