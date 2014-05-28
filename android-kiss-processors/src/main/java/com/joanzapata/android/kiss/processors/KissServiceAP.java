@@ -317,7 +317,7 @@ public class KissServiceAP extends AbstractProcessor {
         // End the try block
         inner.endControlFlow();
 
-        // Retrieve values of ErrorManagement annotation.
+        // Retrieve values of ErrorManagement annotation on the method.
         List<ErrorCase> errorCases = new ArrayList<ErrorCase>();
         AnnotationMirror errorManagementAnnotation = getAnnotation(method, ErrorManagement.class);
         if (errorManagementAnnotation != null) {
@@ -330,6 +330,17 @@ public class KissServiceAP extends AbstractProcessor {
             }
         }
 
+        // Add valures of ErrorManagement annotation on the class
+        errorManagementAnnotation = getAnnotation(method.getEnclosingElement(), ErrorManagement.class);
+        if (errorManagementAnnotation != null) {
+            Iterable<AnnotationMirror> errorMappings = getAnnotationValue(errorManagementAnnotation, "value");
+            for (AnnotationMirror errorMapping : errorMappings) {
+                errorCases.add(new ErrorCase(
+                        (Integer) getAnnotationValue(errorMapping, "on"),
+                        (DeclaredType) getAnnotationValue(errorMapping, "send")
+                ));
+            }
+        }
         // Begin the catch block
         inner.beginControlFlow("catch (Throwable __e)")
                 .emitField("int", "code", of(FINAL), "__errorMapper.mapError(__e)")
@@ -342,7 +353,6 @@ public class KissServiceAP extends AbstractProcessor {
 
         for (ErrorCase errorCase : errorCases) {
             inner.beginControlFlow("else if (code == %s)", errorCase.code)
-                    // TODO analyze args
                     .emitStatement("Kiss.dispatch(emitter, new %s(%s))",
                             errorCase.className.toString(),
                             constructErrorMessageParams(errorCase.className, method, "__e"))
@@ -351,12 +361,7 @@ public class KissServiceAP extends AbstractProcessor {
         }
 
         // If no mapping could be found, delegate to global exception handler
-        inner.beginControlFlow("if (errorMessage == null)")
-                .emitStatement("Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), __e)")
-                .emitStatement("return")
-                .endControlFlow()
-
-                        // If a mapping could be found, instantiate the message
+        inner.emitStatement("Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), __e)")
                 .endControlFlow();
 
     }
