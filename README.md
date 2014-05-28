@@ -2,11 +2,11 @@
 
 ![Logo](https://raw.githubusercontent.com/JoanZapata/android-kiss/master/logo.png)
 
-## Motivation
+# Motivation
 
 **Kiss** is born from an [article](http://blog.joanzapata.com/robust-architecture-for-an-android-app/) I wrote a few weeks ago, which gave me a lot of feedbacks and interesting comments. **Kiss** manages threading and caching transparently in your Android app. It's an alternative to [AsyncTasks](http://developer.android.com/reference/android/os/AsyncTask.html), [Loaders](http://developer.android.com/guide/components/loaders.html), or more advanced libs like [RxJava](https://github.com/Netflix/RxJava), [Robospice](https://github.com/stephanenicolas/robospice), [Groundy](https://github.com/telly/groundy),… but **Kiss** focuses on keeping your code short and simple! Its name means *keep it simple, stupid*, an old [design principle](http://en.wikipedia.org/wiki/KISS_principle) invented in the 60s.
 
-## Sample
+# Sample
 
 ```java 
 @KissService
@@ -43,7 +43,15 @@ public class DemoActivity extends Activity {
 }
 ```
 
-See the [Wiki](https://github.com/JoanZapata/android-kiss/wiki) for more information.
+# Where to find it
+
+Kiss is hosted on Maven Central, just add this line to your gradle dependencies:
+
+```groovy
+compile('com.joanzapata.android.kiss:android-kiss:0.0.+@aar') { transitive = true }
+```
+
+# [Get started](https://github.com/JoanZapata/android-kiss/wiki)
 
 ## License
 
