@@ -16,13 +16,37 @@
 package com.joanzapata.android.kiss.api;
 
 import java.io.Serializable;
+import java.util.List;
 
 public interface EnhancedService {
 
-    <T extends Serializable> T getCached(String key, Class<T> returnType);
+    /**
+     * Send a message to the current caller.
+     * @param message The message you want to send.
+     */
+    void send(Object message);
 
+    /**
+     * Cache an object at the given key. (override previous value if any)
+     * @param key    The key at which you want to store the object.
+     * @param object A serializable object to store.
+     */
     void cache(String key, Serializable object);
 
-    void send(Object message);
+    /** Same as #cache for lists */
+    void cacheList(String key, List<? extends Serializable> object);
+
+    /**
+     * Retrieve the cache value at the given key.
+     * @param key        The key at which you previously stored the object.
+     * @param returnType The expected return type.
+     * @return The last cached value at the given key, or null if
+     * nothing was stored here before, or null if the return type
+     * has changed since the last time the object was store.
+     */
+    <T extends Serializable> T getCached(String key, Class<T> returnType);
+
+    /** Same as #getCached but for a list value. */
+    <T extends Serializable> List<T> getCachedList(String key, Class<T> returnType);
 
 }

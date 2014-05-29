@@ -20,6 +20,9 @@ import com.snappydb.internal.DBImpl;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public final class KissCache {
 
@@ -53,6 +56,21 @@ public final class KissCache {
         }
     }
 
+    public static void storeList(String key, List<? extends Serializable> object) {
+        if (!isReady()) return;
+
+        try {
+
+            // Put the object in DB
+            dbImpl.put(key, object.toArray());
+
+        } catch (Exception e) {
+
+            // Don't make the app crash for a single failure, just log it
+            if (VERBOSE) Log.w(TAG, "Was unable to store object " + object + " in cache.", e);
+        }
+    }
+
     public static void store(String key, Serializable object) {
         if (!isReady()) return;
 
@@ -75,6 +93,29 @@ public final class KissCache {
 
             // Get the object in cache
             return dbImpl.get(key, expectedClass);
+
+        } catch (Exception e) {
+
+            /*
+             We don't call get if contains() return false, so an exception
+             at this point probably means the class definition has changed,
+             we should remove this obsolete value from the cache.
+            */
+            remove(key);
+            return null;
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Serializable> List<T> getList(String key, Class<T> expectedClass) {
+        if (!isReady()) return null;
+        try {
+
+            // Get the object in cache
+            T[] found = dbImpl.getArray(key, expectedClass);
+            if (found == null) return null;
+            return asList(found);
 
         } catch (Exception e) {
 

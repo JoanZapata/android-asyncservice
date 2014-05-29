@@ -102,7 +102,7 @@ public class KissServiceAP extends AbstractProcessor {
 
                 // Start writing the file
                 JavaWriter writer = javaWriter.emitPackage(elementPackage)
-                        .emitImports(Kiss.class, Message.class, BackgroundExecutor.class, ErrorMapper.class, Serializable.class)
+                        .emitImports(Kiss.class, Message.class, BackgroundExecutor.class, ErrorMapper.class, Serializable.class, List.class)
                         .emitImports(
                                 "android.os.Handler",
                                 "android.os.Looper",
@@ -159,8 +159,18 @@ public class KissServiceAP extends AbstractProcessor {
                             .endMethod()
                             .emitEmptyLine()
                             .emitAnnotation(Override.class)
+                            .beginMethod("<T extends Serializable> List<T>", "getCachedList", of(PUBLIC), "String", "key", "Class<T>", "returnType")
+                            .emitStatement("return KissCache.getList(key, returnType)")
+                            .endMethod()
+                            .emitEmptyLine()
+                            .emitAnnotation(Override.class)
                             .beginMethod("void", "cache", of(PUBLIC), "String", "key", "Serializable", "object")
                             .emitStatement("KissCache.store(key, object)")
+                            .endMethod()
+                            .emitEmptyLine()
+                            .emitAnnotation(Override.class)
+                            .beginMethod("void", "cacheList", of(PUBLIC), "String", "key", "List<? extends Serializable>", "object")
+                            .emitStatement("KissCache.storeList(key, object)")
                             .endMethod()
                             .emitEmptyLine()
                             .emitAnnotation(Override.class)
