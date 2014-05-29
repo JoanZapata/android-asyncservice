@@ -15,8 +15,6 @@
  */
 package com.joanzapata.android.kiss.api.annotation;
 
-import com.joanzapata.android.kiss.api.Message;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,12 +24,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface OnMessage {
 
-    Class<? extends Message> value() default USE_PARAMETER_TYPE.class;
+    Class<?> value() default UseParameterType.class;
 
     Sender from() default Sender.THIS;
 
     /** This is the default value for event(), do not use it. */
-    static final class USE_PARAMETER_TYPE extends Message {}
+    static final class UseParameterType {}
 
     static enum Sender {
         THIS, ALL

@@ -15,8 +15,6 @@
  */
 package com.joanzapata.android.kiss.api.annotation;
 
-import com.joanzapata.android.kiss.api.ErrorMessage;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,6 +31,6 @@ public @interface Mapping {
 
     int on();
 
-    Class<? extends ErrorMessage> send();
+    Class<?> send();
 
 }

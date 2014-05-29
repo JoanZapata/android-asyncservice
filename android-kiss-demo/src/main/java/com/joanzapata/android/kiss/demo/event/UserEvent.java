@@ -15,17 +15,15 @@
  */
 package com.joanzapata.android.kiss.demo.event;
 
-import com.joanzapata.android.kiss.api.Message;
+import java.io.Serializable;
 
-public class UserEvent extends Message {
+public class UserEvent implements Serializable {
 
     private Long id;
 
     private String name;
 
     private int age;
-
-    public UserEvent() {}
 
     public UserEvent(Long id, String name, int age) {
         this.id = id;

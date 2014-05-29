@@ -53,9 +53,7 @@ public class DemoService {
         By default, methods are executed in a background thread.
         No caching is involved.
     */
-    @ErrorManagement(
-            @Mapping(on = 200, send = DummyErrorMessage.class)
-    )
+    @ErrorManagement(@Mapping(on = 200, send = DummyErrorMessage.class))
     public UserEvent getUserAsync(Long id) {
         return new UserEvent(id, "Joan", 25);
     }

@@ -18,11 +18,13 @@ package com.joanzapata.android.kiss.api;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 
-public abstract class Message implements Serializable {
+public final class Message<T> implements Serializable {
 
     private boolean cached;
 
     private WeakReference<Object> emitter;
+
+    private final T payload;
 
     /**
      * Contains a description of the query,
@@ -30,6 +32,10 @@ public abstract class Message implements Serializable {
      * that generated this event as a response.
      */
     private String query;
+
+    public Message(T payload) {
+        this.payload = payload;
+    }
 
     public boolean isCached() {
         return cached;
@@ -54,5 +60,9 @@ public abstract class Message implements Serializable {
 
     public void setEmitter(Object emitter) {
         this.emitter = new WeakReference<Object>(emitter);
+    }
+
+    public T getPayload() {
+        return payload;
     }
 }

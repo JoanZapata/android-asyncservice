@@ -62,9 +62,7 @@ public class MainActivity extends Activity {
      */
     @OnMessage
     public void onUserFetched(UserEvent e) {
-        text.setText((e.isCached() ? "(cached)\n" : "")
-                + e.getName() + " "
-                + e.getAge());
+        text.setText(e.getName() + " " + e.getAge());
     }
 
     /*

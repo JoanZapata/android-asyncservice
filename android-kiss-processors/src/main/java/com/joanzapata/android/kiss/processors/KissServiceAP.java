@@ -15,9 +15,8 @@
  */
 package com.joanzapata.android.kiss.processors;
 
-import com.joanzapata.android.kiss.api.BaseService;
+import com.joanzapata.android.kiss.api.EnhancedService;
 import com.joanzapata.android.kiss.api.ErrorMapper;
-import com.joanzapata.android.kiss.api.ErrorMessage;
 import com.joanzapata.android.kiss.api.Message;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
 import com.joanzapata.android.kiss.api.annotation.Cached;
@@ -47,6 +46,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -102,7 +102,7 @@ public class KissServiceAP extends AbstractProcessor {
 
                 // Start writing the file
                 JavaWriter writer = javaWriter.emitPackage(elementPackage)
-                        .emitImports(Kiss.class, Message.class, BackgroundExecutor.class, ErrorMapper.class, ErrorMessage.class)
+                        .emitImports(Kiss.class, Message.class, BackgroundExecutor.class, ErrorMapper.class, Serializable.class)
                         .emitImports(
                                 "android.os.Handler",
                                 "android.os.Looper",
@@ -151,26 +151,27 @@ public class KissServiceAP extends AbstractProcessor {
                         createDelegateMethod(writer, (ExecutableElement) element, newElementName);
 
                 // Implement BaseService interface if needed
-                if (implementsInterface((TypeElement) minimServiceElement, BaseService.class)) {
+                if (implementsInterface((TypeElement) minimServiceElement, EnhancedService.class)) {
                     writer.emitEmptyLine()
                             .emitAnnotation(Override.class)
-                            .beginMethod("<T extends Message> T", "getCachedMessage", of(PUBLIC), "String", "key", "Class<T>", "returnType")
+                            .beginMethod("<T extends Serializable> T", "getCached", of(PUBLIC), "String", "key", "Class<T>", "returnType")
                             .emitStatement("return KissCache.get(key, returnType)")
                             .endMethod()
                             .emitEmptyLine()
                             .emitAnnotation(Override.class)
-                            .beginMethod("void", "cacheMessage", of(PUBLIC), "String", "key", "Message", "object")
+                            .beginMethod("void", "cache", of(PUBLIC), "String", "key", "Serializable", "object")
                             .emitStatement("KissCache.store(key, object)")
                             .endMethod()
                             .emitEmptyLine()
                             .emitAnnotation(Override.class)
-                            .beginMethod("void", "sendMessage", of(PUBLIC), "Message", "message")
-                            .emitStatement("Kiss.dispatch(emitter, message)")
+                            .beginMethod("void", "send", of(PUBLIC), "Object", "payload")
+                            .emitStatement("Message message = new Message(payload)")
+                            .emitStatement("message.setEmitter(emitter)")
+                            .emitStatement("Kiss.dispatch(message)")
                             .endMethod();
                 }
 
                 writer.endType();
-
                 out.flush();
                 out.close();
             }
@@ -228,6 +229,10 @@ public class KissServiceAP extends AbstractProcessor {
             String annotationValue = getAnnotationValue(cachedAnnotation, "key");
             annotationCacheToParse = annotationValue == null ?
                     cacheValueFromMethodSignatureToParse : annotationValue;
+
+            // If cached, return type should be serializable
+            if (!isAssignable(processingEnv, method.getReturnType(), Serializable.class))
+                throw new IllegalArgumentException("If you want to use cache features on " + method.getReturnType() + ", it should implement Serializable.");
         }
 
         // Start the mimic method
@@ -247,12 +252,19 @@ public class KissServiceAP extends AbstractProcessor {
 
         if (isCached) {
             classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
-            classWriter.emitStatement("BackgroundExecutor.execute(new Runnable() {\n" +
-                    "    public void run() {\n" +
-                    "        Message cache = KissCache.get(cacheKey, %s.class);\n" +
-                    "        if (cache != null) Kiss.dispatch(emitter, cache.cached());\n" +
-                    "    }\n" +
-                    "}, callId, \"%s\")", method.getReturnType().toString(), SERIAL_CHECK_CACHE);
+            StringWriter buffer = new StringWriter();
+            JavaWriter inner = new JavaWriter(buffer);
+            inner.emitPackage("")
+                    .beginType("Runnable()", "new")
+                    .emitAnnotation("Override")
+                    .beginMethod("void", "run", of(PUBLIC))
+                    .emitStatement("%s cache = KissCache.get(cacheKey, %s.class)", method.getReturnType(), method.getReturnType())
+                    .emitStatement("if (cache == null) return")
+                    .emitStatement("Message message = new Message(cache)")
+                    .emitStatement("message.cached().setEmitter(emitter)")
+                    .emitStatement("Kiss.dispatch(message)")
+                    .endMethod().endType();
+            classWriter.emitStatement("BackgroundExecutor.execute(%s, callId, \"%s\")", buffer.toString(), SERIAL_CHECK_CACHE);
         }
 
         String threadingPrefix = isUiThread ? "__handler.post(" : "BackgroundExecutor.execute(\n";
@@ -270,25 +282,23 @@ public class KissServiceAP extends AbstractProcessor {
 
         beginErrorManagement(method, inner);
 
-        if (isCached) {
-            // If cached with result
-            inner.emitStatement("Message __event = %s.super.%s(%s)",
+        if (hasResult) {
+            // If the method has result
+            inner.emitStatement("%s __payload = %s.super.%s(%s)",
+                    method.getReturnType(),
                     newElementName,
                     method.getSimpleName(),
                     formatParametersForCall(method))
-                    .emitStatement("if (__event == null) return")
-                    .emitStatement("__event.setQuery(callId)")
-                    .emitStatement("if (__event != null) KissCache.store(cacheKey, __event)")
-                    .emitStatement("Kiss.dispatch(emitter, __event)");
+                    .emitStatement("if (__payload == null) return")
+                    .emitStatement("Message __message = new Message(__payload)")
+                    .emitStatement("__message.setQuery(callId)")
+                    .emitStatement("__message.setEmitter(emitter)");
 
-        } else if (hasResult) {
-            // If not cached, but with result
-            inner.emitStatement("Message __event = %s.super.%s(%s)", newElementName,
-                    method.getSimpleName(),
-                    formatParametersForCall(method))
-                    .emitStatement("if (__event == null) return")
-                    .emitStatement("__event.setQuery(callId)")
-                    .emitStatement("Kiss.dispatch(emitter, __event)");
+            // If it's cached, cache it
+            if (isCached) inner.emitStatement("KissCache.store(cacheKey, __payload)");
+
+            // Then dispatch the message
+            inner.emitStatement("Kiss.dispatch(__message)");
 
         } else {
             // If no cache, no result
@@ -344,8 +354,7 @@ public class KissServiceAP extends AbstractProcessor {
         }
         // Begin the catch block
         inner.beginControlFlow("catch (Throwable __e)")
-                .emitField("int", "code", of(FINAL), "__errorMapper.mapError(__e)")
-                .emitStatement("ErrorMessage errorMessage = null");
+                .emitField("int", "code", of(FINAL), "__errorMapper.mapError(__e)");
 
         // Try to match the code with a message class to instantiate
         inner.beginControlFlow("if (code == -1)")
@@ -354,9 +363,11 @@ public class KissServiceAP extends AbstractProcessor {
 
         for (ErrorCase errorCase : errorCases) {
             inner.beginControlFlow("else if (code == %s)", errorCase.code)
-                    .emitStatement("Kiss.dispatch(emitter, new %s(%s))",
+                    .emitStatement("Message __errorMessage = new Message(new %s(%s))",
                             errorCase.className.toString(),
                             constructErrorMessageParams(errorCase.className, method, "__e"))
+                    .emitStatement("__errorMessage.setEmitter(emitter)")
+                    .emitStatement("Kiss.dispatch(__errorMessage)")
                     .emitStatement("return")
                     .endControlFlow();
         }
@@ -387,13 +398,8 @@ public class KissServiceAP extends AbstractProcessor {
 
                 // The only authorized param without annotation should be an exception
                 if (throwerParamAnnotation == null) {
-
-                    boolean assignable = processingEnv.getTypeUtils().isAssignable(
-                            variableElement.asType(),
-                            processingEnv.getElementUtils().getTypeElement(Throwable.class.getCanonicalName()).asType());
-
-                    if (!assignable)
-                        throw new IllegalArgumentException("In an ErrorMessage, constructor params must be annotated with @ThrowerParam or be an exception.");
+                    if (!isAssignable(processingEnv, variableElement, Throwable.class))
+                        throw new IllegalArgumentException("In an ErrorMessage, constructor params must be annotated with @ThrowerParam or extend Throwable.");
 
                     params.append(exceptionName);
 

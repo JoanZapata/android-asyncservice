@@ -16,10 +16,10 @@
 package com.joanzapata.android.kiss.api.internal;
 
 import android.util.Log;
-import com.joanzapata.android.kiss.api.Message;
 import com.snappydb.internal.DBImpl;
 
 import java.io.File;
+import java.io.Serializable;
 
 public final class KissCache {
 
@@ -53,7 +53,7 @@ public final class KissCache {
         }
     }
 
-    public static void store(String key, Message object) {
+    public static void store(String key, Serializable object) {
         if (!isReady()) return;
 
         try {
@@ -69,7 +69,7 @@ public final class KissCache {
 
     }
 
-    public static <T extends Message> T get(String key, Class<T> expectedClass) {
+    public static <T extends Serializable> T get(String key, Class<T> expectedClass) {
         if (!isReady()) return null;
         try {
 

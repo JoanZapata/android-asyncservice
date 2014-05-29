@@ -80,16 +80,25 @@ public final class Kiss {
         }
     }
 
+    /**
+     * Send a message with no emitter, it will only be received
+     * by @OnMessage(from = ALL) annotated methods.
+     * @param message The message you want to send.
+     */
+    public static void dispatch(Object message) {
+        Message internalMessage = new Message(message);
+        dispatch(internalMessage);
+    }
+
     /** Dispatch an event, application wide. */
-    public static void dispatch(Object emitter, Message event) {
-        event.setEmitter(emitter);
+    public static void dispatch(Message message) {
 
         // Loop through injectors
         for (int i = 0; i < injectors.size(); i++) {
             Injector injector = injectors.get(i);
 
             // Dispatch event to it
-            boolean isValid = injector.dispatch(event);
+            boolean isValid = injector.dispatch(message);
 
             // Removed it from the list if the injector target is no more valid
             if (!isValid) injectors.remove(i--);

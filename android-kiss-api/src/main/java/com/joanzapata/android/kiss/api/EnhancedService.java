@@ -15,11 +15,14 @@
  */
 package com.joanzapata.android.kiss.api;
 
-public interface BaseService {
+import java.io.Serializable;
 
-    <T extends Message> T getCachedMessage(String key, Class<T> returnType);
+public interface EnhancedService {
 
-    void cacheMessage(String key, Message object);
+    <T extends Serializable> T getCached(String key, Class<T> returnType);
 
-    void sendMessage(Message message);
+    void cache(String key, Serializable object);
+
+    void send(Object message);
+
 }

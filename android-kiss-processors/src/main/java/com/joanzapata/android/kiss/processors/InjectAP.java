@@ -36,6 +36,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -150,15 +151,22 @@ public class InjectAP extends AbstractProcessor {
 
                 // Write the code to call the user method
                 if (checkEmitter) writer.beginControlFlow("if (event.getEmitter() == getTarget())");
-                writer.beginControlFlow("if (event instanceof %s)", eventType)
-                        .emitStatement("__handler.post(new Runnable() {\n" +
-                                "    @Override\n" +
-                                "    public void run() {\n" +
-                                (hasArg ?
-                                        "        target.%s((%s) event);\n" :
-                                        "        target.%s();\n") +
-                                "    }\n" +
-                                "})", annotatedMethod.getSimpleName(), eventType)
+
+                // Create a new inner class for the Runnable to run on UI thread
+                StringWriter buffer = new StringWriter();
+                JavaWriter inner = new JavaWriter(buffer);
+                inner.emitPackage("")
+                        .beginType("Runnable()", "new")
+                        .emitAnnotation("Override")
+                        .beginMethod("void", "run", of(PUBLIC));
+                if (hasArg) inner.emitStatement("target.%s((%s) event.getPayload())",
+                        annotatedMethod.getSimpleName(), eventType);
+                else inner.emitStatement("target.%s()",
+                        annotatedMethod.getSimpleName());
+                inner.endMethod().endType();
+
+                writer.beginControlFlow("if (event.getPayload() instanceof %s)", eventType)
+                        .emitStatement("__handler.post(%s)", buffer.toString())
                         .endControlFlow();
                 if (checkEmitter) writer.endControlFlow();
             }

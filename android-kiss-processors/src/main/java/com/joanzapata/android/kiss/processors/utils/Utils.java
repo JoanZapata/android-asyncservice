@@ -15,6 +15,7 @@
  */
 package com.joanzapata.android.kiss.processors.utils;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -224,7 +225,6 @@ public class Utils {
 
     public static boolean implementsInterface(TypeElement minimServiceElement, Class<?> baseServiceClass) {
         for (TypeMirror typeMirror : minimServiceElement.getInterfaces()) {
-            System.out.println("Compare " + typeMirror.toString() + " with " + baseServiceClass.getCanonicalName());
             if (typeMirror.toString().equals(baseServiceClass.getCanonicalName())) {
                 return true;
             }
@@ -236,4 +236,15 @@ public class Utils {
     public static boolean isConstructor(Element element) {
         return element.getKind().equals(ElementKind.CONSTRUCTOR);
     }
+
+    public static boolean isAssignable(ProcessingEnvironment processingEnv, VariableElement assignmentRightPart, Class<?> assignmentLeftPart) {
+        return isAssignable(processingEnv, assignmentRightPart.asType(), assignmentLeftPart);
+    }
+
+    public static boolean isAssignable(ProcessingEnvironment processingEnv, TypeMirror assignmentRightPart, Class<?> assignmentLeftPart) {
+        return processingEnv.getTypeUtils().isAssignable(
+                assignmentRightPart,
+                processingEnv.getElementUtils().getTypeElement(assignmentLeftPart.getCanonicalName()).asType());
+    }
+
 }
