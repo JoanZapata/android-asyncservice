@@ -18,16 +18,13 @@ package com.joanzapata.android.kiss.demo;
 import android.content.Context;
 import android.widget.Toast;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
-import com.joanzapata.android.kiss.api.annotation.Cached;
+import com.joanzapata.android.kiss.api.annotation.CacheThenCall;
 import com.joanzapata.android.kiss.api.annotation.ErrorManagement;
 import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
 import com.joanzapata.android.kiss.api.annotation.Mapping;
 import com.joanzapata.android.kiss.api.annotation.Ui;
 import com.joanzapata.android.kiss.demo.event.UserEvent;
-
-import static android.text.format.DateUtils.DAY_IN_MILLIS;
-import static com.joanzapata.android.kiss.api.annotation.Cached.Usage.CACHE_ONLY;
 
 @KissService
 public class DemoService {
@@ -66,7 +63,7 @@ public class DemoService {
 
         The default cache key is <class_name>.<method_name>(<arg1.toString>, <arg2.toString>, ...)
     */
-    @Cached
+    @CacheThenCall
     public UserEvent getUserAsyncWithCache(Long id) {
         sleep();
         displayMessage("This is a toast displayed from the DemoService.");
@@ -76,18 +73,6 @@ public class DemoService {
     @Ui
     protected void displayMessage(String message) {
         Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show();
-    }
-
-    /*
-        Same thing as above, except that this time, if a cached value
-        is found, the cache is sent and this method is not called at all.
-        This cache expires after one day. Passed this duration, on next
-        call the cache is ignored and this method is called again.
-     */
-    @Cached(usage = CACHE_ONLY, validity = DAY_IN_MILLIS)
-    public UserEvent getUserAsyncWithPersistingCache(Long id) {
-        sleep();
-        return new UserEvent(id, "Joan", 25);
     }
 
     // Private methods are not overridden, so you can call them directly.

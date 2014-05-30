@@ -19,7 +19,7 @@ import com.joanzapata.android.kiss.api.EnhancedService;
 import com.joanzapata.android.kiss.api.ErrorMapper;
 import com.joanzapata.android.kiss.api.Message;
 import com.joanzapata.android.kiss.api.annotation.ApplicationContext;
-import com.joanzapata.android.kiss.api.annotation.Cached;
+import com.joanzapata.android.kiss.api.annotation.CacheThenCall;
 import com.joanzapata.android.kiss.api.annotation.ErrorManagement;
 import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
@@ -225,7 +225,7 @@ public class KissServiceAP extends AbstractProcessor {
         if (isAnnotatedWith(method, Init.class)) return;
 
         // Find all needed values for @Cache if any
-        AnnotationMirror cachedAnnotation = getAnnotation(method, Cached.class);
+        AnnotationMirror cachedAnnotation = getAnnotation(method, CacheThenCall.class);
         boolean isCached = cachedAnnotation != null;
         boolean isUiThread = getAnnotation(method, Ui.class) != null;
         boolean hasResult = !(method.getReturnType() instanceof NoType);
@@ -236,7 +236,7 @@ public class KissServiceAP extends AbstractProcessor {
         String annotationCacheToParse = null;
         String cacheValueFromMethodSignatureToParse = defineKeyFromMethod(method);
         if (isCached) {
-            String annotationValue = getAnnotationValue(cachedAnnotation, "key");
+            String annotationValue = getAnnotationValue(cachedAnnotation, "value");
             annotationCacheToParse = annotationValue == null ?
                     cacheValueFromMethodSignatureToParse : annotationValue;
 

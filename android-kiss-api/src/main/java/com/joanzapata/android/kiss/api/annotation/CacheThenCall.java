@@ -22,17 +22,12 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
-public @interface Cached {
+public @interface CacheThenCall {
 
     String NO_KEY = "__NO_KEY";
 
-    String key() default NO_KEY;
-
-    Usage usage() default Usage.CACHE_THEN_RENEW;
+    String value() default NO_KEY;
 
     long validity() default 0;
 
-    static enum Usage {
-        CACHE_THEN_RENEW, CACHE_ONLY
-    }
 }
