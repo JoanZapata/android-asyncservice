@@ -25,6 +25,8 @@ public class UserEvent implements Serializable {
 
     private int age;
 
+    UserEvent() {}
+
     public UserEvent(Long id, String name, int age) {
         this.id = id;
         this.name = name;
