@@ -247,4 +247,9 @@ public class Utils {
                 processingEnv.getElementUtils().getTypeElement(assignmentLeftPart.getCanonicalName()).asType());
     }
 
+    /** Return true if the type has some generic parameter */
+    public static boolean hasTypeParameters(ProcessingEnvironment processingEnv, TypeMirror typeMirror) {
+        TypeElement element = (TypeElement) processingEnv.getTypeUtils().asElement(typeMirror);
+        return !element.getTypeParameters().isEmpty();
+    }
 }

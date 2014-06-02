@@ -34,6 +34,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -132,16 +133,21 @@ public class InjectAP extends AbstractProcessor {
             for (Element responseReceiver : responseReceivers) {
                 ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
                 List<? extends VariableElement> parameters = annotatedMethod.getParameters();
-                assertThat(parameters.size() <= 1, "@InjectResponse annotated methods should have exactly one parameter.");
+                assertThat(parameters.size() <= 1, "@OnMessage annotated methods should have exactly one parameter.");
 
                 // Define event type given parameter or @InjectResponse value
                 String eventType;
                 boolean hasArg = parameters.size() == 1;
                 if (hasArg) {
-                    eventType = parameters.get(0).asType().toString();
+                    TypeMirror typeMirror = parameters.get(0).asType();
+                    eventType = typeMirror.toString();
+                    assertThat(!hasTypeParameters(processingEnv, typeMirror),
+                            "You can't receive typed parameters in @OnMessage method " + responseReceiver.getSimpleName() + "()");
                 } else {
                     DeclaredType parameterTypeClass = getAnnotationValue(getAnnotation(annotatedMethod, OnMessage.class), "value");
-                    assertThat(parameterTypeClass != null, "@InjectResponse on a no-arg method should have a value.");
+                    assertThat(!hasTypeParameters(processingEnv, parameterTypeClass),
+                            "You can't receive typed parameters in @OnMessage method " + responseReceiver.getSimpleName() + "()");
+                    assertThat(parameterTypeClass != null, "@OnMessage on a no-arg method should have a value.");
                     eventType = parameterTypeClass.toString();
                 }
 

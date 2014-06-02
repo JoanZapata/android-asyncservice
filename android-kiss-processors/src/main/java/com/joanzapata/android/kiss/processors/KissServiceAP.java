@@ -224,14 +224,17 @@ public class KissServiceAP extends AbstractProcessor {
         if (!isPublicOrProtectedMethod(method)) return;
         if (isAnnotatedWith(method, Init.class)) return;
 
-        // Find all needed values for @Cache if any
+        // Find all needed values for @CacheThenCall if any
         AnnotationMirror cachedAnnotation = getAnnotation(method, CacheThenCall.class);
         boolean isCached = cachedAnnotation != null;
         boolean isUiThread = getAnnotation(method, Ui.class) != null;
         boolean hasResult = !(method.getReturnType() instanceof NoType);
 
         if (isCached && !hasResult)
-            throw new IllegalStateException("@Cached method should have a return value");
+            throw new IllegalStateException("@CacheThenCall method should have a return value");
+
+        if (hasResult && hasTypeParameters(processingEnv, method.getReturnType()))
+            throw new IllegalStateException("Kiss service method " + method.getSimpleName() + " can't use parametrized return type");
 
         String annotationCacheToParse = null;
         String cacheValueFromMethodSignatureToParse = defineKeyFromMethod(method);
