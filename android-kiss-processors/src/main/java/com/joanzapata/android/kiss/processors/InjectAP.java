@@ -29,6 +29,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -55,12 +56,11 @@ public class InjectAP extends AbstractProcessor {
 
     public static final String INJECTOR_SUFFIX = "Injector";
     private final List<String> managedTypes = new ArrayList<String>();
+    private Logger logger;
 
     @Override
     public boolean process(Set<? extends TypeElement> typeElements, RoundEnvironment roundEnvironment) {
-
-        // Initialize a logger
-        Logger logger = new Logger(processingEnv.getMessager());
+        logger = new Logger(processingEnv.getMessager());
 
         // Get holding class
         for (TypeElement typeElement : typeElements) {
@@ -92,20 +92,34 @@ public class InjectAP extends AbstractProcessor {
             Writer out = classFile.openWriter();
             JavaWriter writer = new JavaWriter(out);
 
+            writer.emitPackage(packageName);
+
+            // Initial imports
+            writer.emitImports(
+                    Kiss.class,
+                    Injector.class,
+                    Message.class,
+                    Set.class,
+                    HashSet.class)
+                    .emitImports(
+                            "android.os.Handler",
+                            "android.os.Looper");
+
             // Generates "public final class XXXInjector extends Injector<XXX>"
-            writer.emitPackage(packageName)
-                    .emitImports(Kiss.class, Injector.class, Message.class, Set.class, HashSet.class)
-                    .emitImports("android.os.Handler", "android.os.Looper")
-                    .emitEmptyLine()
-                    .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">")
-                    .emitEmptyLine()
-                    .emitField("Handler", "__handler", of(PRIVATE, FINAL), "new Handler(Looper.getMainLooper())")
-                    .emitEmptyLine()
-                    .emitField("Set<String>", "__receivedFinalResponses", of(PRIVATE, FINAL), "new HashSet<String>()")
-                    .emitEmptyLine();
+            writer.emitEmptyLine()
+                    .beginType(simpleName + INJECTOR_SUFFIX, "class", of(PUBLIC, FINAL), "Injector<" + simpleName + ">");
+
+            // Generate a handler to execute runnables on the UI Thread
+            writer.emitEmptyLine()
+                    .emitField("Handler", "__handler", of(PRIVATE, FINAL), "new Handler(Looper.getMainLooper())");
+
+            // Keep trace of when a method has received data which is not from cache
+            writer.emitEmptyLine()
+                    .emitField("Set<String>", "__receivedFinalResponses", of(PRIVATE, FINAL), "new HashSet<String>()");
 
             // Generates "protected void inject(XXX target) { ..."
-            writer.emitAnnotation(Override.class)
+            writer.emitEmptyLine()
+                    .emitAnnotation(Override.class)
                     .beginMethod("void", "inject", of(PROTECTED), simpleName, "target");
 
             // Here, inject all services
@@ -124,7 +138,7 @@ public class InjectAP extends AbstractProcessor {
                     .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + Message.class.getSimpleName(), "event");
 
             // Once the user has received a "remote" result, make sure no cache is sent anymore
-            writer.emitField("boolean", "__hasBeenReceivedAlready", of(FINAL), "__receivedFinalResponses.contains(event.getQuery())")
+            writer.emitField("boolean", "__hasBeenReceivedAlready", of(FINAL), "event.getQuery() != null && __receivedFinalResponses.contains(event.getQuery())")
                     .emitStatement("if (event.isCached() && __hasBeenReceivedAlready) return")
                     .emitStatement("if (!__hasBeenReceivedAlready && !event.isCached()) __receivedFinalResponses.add(event.getQuery())");
 
@@ -133,7 +147,9 @@ public class InjectAP extends AbstractProcessor {
             for (Element responseReceiver : responseReceivers) {
                 ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
                 List<? extends VariableElement> parameters = annotatedMethod.getParameters();
-                assertThat(parameters.size() <= 1, "@OnMessage annotated methods should have exactly one parameter.");
+
+                if (parameters.size() > 1)
+                    logger.error(responseReceiver, "@OnMessage annotated methods can't have more than 1 argument");
 
                 // Define event type given parameter or @InjectResponse value
                 String eventType;
@@ -141,13 +157,19 @@ public class InjectAP extends AbstractProcessor {
                 if (hasArg) {
                     TypeMirror typeMirror = parameters.get(0).asType();
                     eventType = typeMirror.toString();
-                    assertThat(!hasTypeParameters(processingEnv, typeMirror),
-                            "You can't receive typed parameters in @OnMessage method " + responseReceiver.getSimpleName() + "()");
+                    if (hasTypeParameters(processingEnv, typeMirror))
+                        logger.error(parameters.get(0), "You can't receive typed parameters in @OnMessage annotated methods");
+
                 } else {
-                    DeclaredType parameterTypeClass = getAnnotationValue(getAnnotation(annotatedMethod, OnMessage.class), "value");
-                    assertThat(!hasTypeParameters(processingEnv, parameterTypeClass),
-                            "You can't receive typed parameters in @OnMessage method " + responseReceiver.getSimpleName() + "()");
-                    assertThat(parameterTypeClass != null, "@OnMessage on a no-arg method should have a value.");
+                    AnnotationMirror annotationMirror = getAnnotation(annotatedMethod, OnMessage.class);
+                    DeclaredType parameterTypeClass = getAnnotationValue(annotationMirror, "value");
+
+                    if (parameterTypeClass == null)
+                        logger.error(annotatedMethod, "Either declare an argument or give @OnMessage a value.");
+
+                    if (hasTypeParameters(processingEnv, parameterTypeClass))
+                        logger.error(annotatedMethod, annotationMirror, "value", "You can't receive typed parameters in @OnMessage method");
+
                     eventType = parameterTypeClass.toString();
                 }
 

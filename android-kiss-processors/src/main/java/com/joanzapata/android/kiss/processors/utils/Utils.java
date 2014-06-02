@@ -180,6 +180,16 @@ public class Utils {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    public static AnnotationValue getRawAnnotationValue(AnnotationMirror annotationMirror, String key) {
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().toString().equals(key)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
     /**
      * something({x}, {y}) => "something(" + x + ", " + y + ")"
      */

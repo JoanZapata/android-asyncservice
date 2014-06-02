@@ -16,8 +16,12 @@
 package com.joanzapata.android.kiss.processors.utils;
 
 import javax.annotation.processing.Messager;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.tools.Diagnostic;
 
-import static javax.tools.Diagnostic.Kind.NOTE;
+import static javax.tools.Diagnostic.Kind.*;
 
 public class Logger {
 
@@ -29,5 +33,13 @@ public class Logger {
 
     public void note(String message) {
         messager.printMessage(NOTE, message);
+    }
+
+    public void error(Element element, String message) {
+        messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+    }
+
+    public void error(ExecutableElement element, AnnotationMirror annotationMirror, String annotationValue, String message) {
+        messager.printMessage(ERROR, message, element, annotationMirror, Utils.getRawAnnotationValue(annotationMirror, annotationValue));
     }
 }
