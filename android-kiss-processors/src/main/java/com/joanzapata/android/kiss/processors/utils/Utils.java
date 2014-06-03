@@ -105,24 +105,6 @@ public class Utils {
     }
 
     /**
-     * Return the qualified name of a class given its package name and class name
-     * @param packageName Example "com.foo"
-     * @param className   Example "Bar"
-     * @return Example "com.foo.Bar"
-     */
-    public static String getFullName(String packageName, String className) {
-        if (isNullOrEmpty(packageName)) return className;
-        else return packageName + "." + className;
-    }
-
-    /**
-     * Return true if the given string is null or empty.
-     */
-    private static boolean isNullOrEmpty(String elementPackage) {
-        return elementPackage == null || elementPackage.isEmpty();
-    }
-
-    /**
      * Finds all elements (fields, methods) annotated with the given annotation in the given class element.
      */
     public static List<Element> findElementsAnnotatedWith(TypeElement element, Class<? extends Annotation> annotationClass) {
@@ -149,16 +131,6 @@ public class Utils {
     /** Return true if the given annotation mirror equals the given annotation class */
     private static boolean equals(AnnotationMirror annotationMirror, Class<? extends Annotation> annotationClass) {
         return annotationMirror.getAnnotationType().toString().equals(annotationClass.getName());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends Element> T castOrThrow(Element element, Class<T> subclass, String error) {
-        if (subclass.isAssignableFrom(element.getClass())) return (T) element;
-        else throw new IllegalArgumentException(error);
-    }
-
-    public static void assertThat(boolean condition, String errorMessage) {
-        if (!condition) throw new IllegalArgumentException(errorMessage);
     }
 
     public static AnnotationMirror getAnnotation(Element element, Class<? extends Annotation> annotationClass) {

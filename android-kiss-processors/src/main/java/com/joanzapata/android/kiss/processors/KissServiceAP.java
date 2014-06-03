@@ -63,12 +63,13 @@ import static javax.lang.model.element.Modifier.*;
 public class KissServiceAP extends AbstractProcessor {
 
     public static final String GENERATED_CLASS_SUFFIX = "Impl";
+    private Logger logger;
 
     @Override
     public boolean process(Set<? extends TypeElement> typeElements, RoundEnvironment roundEnvironment) {
         try {
             // Initialize a logger
-            Logger logger = new Logger(processingEnv.getMessager());
+            logger = new Logger(processingEnv.getMessager());
 
             // Retrieve @MinimService annotated elements
             Set<? extends Element> minimServices = roundEnvironment.getElementsAnnotatedWith(KissService.class);
@@ -80,7 +81,7 @@ public class KissServiceAP extends AbstractProcessor {
                 // Make sure all fields are static
                 for (Element element : minimServiceElement.getEnclosedElements())
                     if (isField(element) && !isStatic(element))
-                        throw new IllegalArgumentException("All fields in @KissService should be static, " + element.getSimpleName() + " is not.");
+                        logger.error(element, "All fields in @KissService should be static");
 
                 // Get name and package
                 String elementName = minimServiceElement.getSimpleName().toString();
@@ -90,6 +91,7 @@ public class KissServiceAP extends AbstractProcessor {
                 String newElementName = elementName + GENERATED_CLASS_SUFFIX;
                 String targetFile = ((TypeElement) minimServiceElement).getQualifiedName() + GENERATED_CLASS_SUFFIX;
                 JavaFileObject classFile = processingEnv.getFiler().createSourceFile(targetFile);
+
                 logger.note("Writing " + classFile.toUri().getRawPath());
                 Writer out = classFile.openWriter();
                 JavaWriter javaWriter = new JavaWriter(out);
@@ -100,9 +102,14 @@ public class KissServiceAP extends AbstractProcessor {
 
                 String errorMapperClassName = findErrorMapperClassName(minimServiceElement);
 
-                // Start writing the file
+                // Emit general imports
                 JavaWriter writer = javaWriter.emitPackage(elementPackage)
-                        .emitImports(Kiss.class, Message.class, BackgroundExecutor.class, ErrorMapper.class, Serializable.class, List.class)
+                        .emitImports(Kiss.class,
+                                Message.class,
+                                BackgroundExecutor.class,
+                                ErrorMapper.class,
+                                Serializable.class,
+                                List.class)
                         .emitImports(
                                 "android.os.Handler",
                                 "android.os.Looper",
@@ -136,7 +143,7 @@ public class KissServiceAP extends AbstractProcessor {
                 List<Element> applicationContextFields = findElementsAnnotatedWith((TypeElement) minimServiceElement, ApplicationContext.class);
                 for (Element applicationContextField : applicationContextFields) {
                     if (!isPublicOrProtectedField(applicationContextField))
-                        throw new IllegalStateException("@ApplicationContext fields should be either public or protected");
+                        logger.error(applicationContextField, "@ApplicationContext fields should be either public or protected");
                     writer.emitStatement("%s = Kiss.context", applicationContextField.getSimpleName());
                 }
 
@@ -150,7 +157,7 @@ public class KissServiceAP extends AbstractProcessor {
                     if (isMethod(element))
                         createDelegateMethod(writer, (ExecutableElement) element, newElementName);
 
-                // Implement BaseService interface if needed
+                // Implement EnhancedService interface if needed
                 if (implementsInterface((TypeElement) minimServiceElement, EnhancedService.class)) {
                     writer.emitEmptyLine()
                             .emitAnnotation(Override.class)
@@ -212,7 +219,9 @@ public class KissServiceAP extends AbstractProcessor {
 
     private void writeCallFlags(JavaWriter writer, List<Element> initMethods) throws IOException {
         for (Element initMethod : initMethods) {
-            if (!isStatic(initMethod)) throw new IllegalArgumentException("@Init method " + initMethod.getSimpleName() + " should be static");
+            if (!isStatic(initMethod))
+                logger.error(initMethod, "@Init annotated method must be static.");
+
             writer.emitEmptyLine()
                     .emitField("boolean", initMethod.getSimpleName().toString() + "_called",
                             isStatic(initMethod) ? of(PRIVATE, STATIC, VOLATILE) : of(PRIVATE, VOLATILE),
@@ -231,10 +240,10 @@ public class KissServiceAP extends AbstractProcessor {
         boolean hasResult = !(method.getReturnType() instanceof NoType);
 
         if (isCached && !hasResult)
-            throw new IllegalStateException("@CacheThenCall method should have a return value");
+            logger.error(method, cachedAnnotation, "@CacheThenCall annotated method should not return void.");
 
         if (hasResult && hasTypeParameters(processingEnv, method.getReturnType()))
-            throw new IllegalStateException("Kiss service method " + method.getSimpleName() + " can't use parametrized return type");
+            logger.error(method, "You can't use parametrized types in your method return type.");
 
         String annotationCacheToParse = null;
         String cacheValueFromMethodSignatureToParse = defineKeyFromMethod(method);
@@ -245,7 +254,7 @@ public class KissServiceAP extends AbstractProcessor {
 
             // If cached, return type should be serializable
             if (!isAssignable(processingEnv, method.getReturnType(), Serializable.class))
-                throw new IllegalArgumentException("If you want to use cache features on " + method.getReturnType() + ", it should implement Serializable.");
+                logger.error(method, method.getReturnType() + " should implement Serializable in order to be cached.");
         }
 
         // Start the mimic method
@@ -412,8 +421,7 @@ public class KissServiceAP extends AbstractProcessor {
                 // The only authorized param without annotation should be an exception
                 if (throwerParamAnnotation == null) {
                     if (!isAssignable(processingEnv, variableElement, Throwable.class))
-                        throw new IllegalArgumentException("In an ErrorMessage, constructor params must be annotated with @ThrowerParam or extend Throwable.");
-
+                        logger.error(variableElement, "In an ErrorMessage, constructor params must be annotated with @ThrowerParam or extend Throwable.");
                     params.append(exceptionName);
 
                 } else {
@@ -427,30 +435,33 @@ public class KissServiceAP extends AbstractProcessor {
                         }
                     }
 
-                    if (matchingParam == null) {
-                        throw new IllegalArgumentException("Couldn't find a match for constructor param "
-                                + variableElement.getSimpleName()
-                                + " in thrower method "
-                                + throwerMethod.getEnclosingElement().getSimpleName()
-                                + "." + throwerMethod.getSimpleName());
-                    }
+                    // Full matched method name, for logs only
+                    String matchedFullMethodName = throwerMethod.getEnclosingElement().getSimpleName()
+                            + "." + throwerMethod.getSimpleName();
+
+                    if (matchingParam == null)
+                        logger.error(variableElement, "No parameter named " + throwerParamName
+                                + " in " + matchedFullMethodName);
 
                     boolean assignable = processingEnv.getTypeUtils().isAssignable(
                             variableElement.asType(),
                             matchingParam.asType());
 
                     if (!assignable)
-                        throw new IllegalArgumentException("In " + targetType
-                                + ", could not bind (" + variableElement.asType() + ") to ("
-                                + matchingParam.asType() + ") for param ["
-                                + throwerParamName + "]");
+                        logger.error(variableElement, "Could not bind (" + variableElement.asType() + ") to ("
+                                + matchingParam.asType() + ") in " + matchedFullMethodName);
 
                     params.append(throwerParamName);
                 }
             }
             return params.toString();
         }
-        throw new IllegalStateException("Couldn't find a suitable constructor in " + targetType.toString());
+
+        logger.error(processingEnv.getElementUtils().getTypeElement(targetType.toString()),
+                "Couldn't find a suitable constructor.");
+
+        // Won't reach this point, logger.error() stops the build.
+        return "";
     }
 
     /**
@@ -465,11 +476,9 @@ public class KissServiceAP extends AbstractProcessor {
     }
 
     private void checkInitAnnotatedMethods(List<Element> initMethods) {
-        for (Element initMethod : initMethods) {
-            if (!isPublicOrProtectedMethod(initMethod)) {
-                throw new IllegalArgumentException("@Init methods should be public or protected");
-            }
-        }
+        for (Element initMethod : initMethods)
+            if (!isPublicOrProtectedMethod(initMethod))
+                logger.error(initMethod, "@Init methods should be public or protected");
     }
 
     private static class ErrorCase {

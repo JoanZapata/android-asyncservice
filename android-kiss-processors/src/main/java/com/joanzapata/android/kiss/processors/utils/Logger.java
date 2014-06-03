@@ -37,9 +37,22 @@ public class Logger {
 
     public void error(Element element, String message) {
         messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+
+        // Just in case the build doesn't stop with the instruction above
+        throw new IllegalArgumentException(message);
     }
 
     public void error(ExecutableElement element, AnnotationMirror annotationMirror, String annotationValue, String message) {
         messager.printMessage(ERROR, message, element, annotationMirror, Utils.getRawAnnotationValue(annotationMirror, annotationValue));
+
+        // Just in case the build doesn't stop with the instruction above
+        throw new IllegalArgumentException(message);
+    }
+
+    public void error(Element element, AnnotationMirror annotationMirror, String message) {
+        messager.printMessage(ERROR, message, element, annotationMirror);
+
+        // Just in case the build doesn't stop with the instruction above
+        throw new IllegalArgumentException(message);
     }
 }
