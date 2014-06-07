@@ -30,6 +30,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -47,6 +48,7 @@ import java.util.Set;
 
 import static com.joanzapata.android.kiss.api.annotation.OnMessage.Sender.ALL;
 import static com.joanzapata.android.kiss.processors.utils.Utils.*;
+import static java.util.Arrays.asList;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
@@ -152,25 +154,29 @@ public class InjectAP extends AbstractProcessor {
                     logger.error(responseReceiver, "@OnMessage annotated methods can't have more than 1 argument");
 
                 // Define event type given parameter or @InjectResponse value
-                String eventType;
+                List<String> eventTypes;
                 boolean hasArg = parameters.size() == 1;
                 if (hasArg) {
                     TypeMirror typeMirror = parameters.get(0).asType();
-                    eventType = typeMirror.toString();
+                    eventTypes = asList(typeMirror.toString());
                     if (hasTypeParameters(processingEnv, typeMirror))
                         logger.error(parameters.get(0), "You can't receive typed parameters in @OnMessage annotated methods");
 
                 } else {
                     AnnotationMirror annotationMirror = getAnnotation(annotatedMethod, OnMessage.class);
-                    DeclaredType parameterTypeClass = getAnnotationValue(annotationMirror, "value");
+                    List<AnnotationValue> parameterTypeClasses = getAnnotationValue(annotationMirror, "value");
 
-                    if (parameterTypeClass == null)
-                        logger.error(annotatedMethod, "Either declare an argument or give @OnMessage a value.");
+                    // Validate each parameter type given in the annotation
+                    eventTypes = new ArrayList<String>();
+                    for (AnnotationValue value : parameterTypeClasses) {
+                        DeclaredType parameterTypeClass = (DeclaredType) value.getValue();
+                        if (parameterTypeClass == null)
+                            logger.error(annotatedMethod, "Either declare an argument or give @OnMessage a value.");
+                        if (hasTypeParameters(processingEnv, parameterTypeClass))
+                            logger.error(annotatedMethod, annotationMirror, "value", "You can't receive typed parameters in @OnMessage method");
+                        eventTypes.add(parameterTypeClass.toString());
+                    }
 
-                    if (hasTypeParameters(processingEnv, parameterTypeClass))
-                        logger.error(annotatedMethod, annotationMirror, "value", "You can't receive typed parameters in @OnMessage method");
-
-                    eventType = parameterTypeClass.toString();
                 }
 
                 // Define whether we should check emitter or not dependeing on the annotation value
@@ -188,14 +194,19 @@ public class InjectAP extends AbstractProcessor {
                         .emitAnnotation("Override")
                         .beginMethod("void", "run", of(PUBLIC));
                 if (hasArg) inner.emitStatement("target.%s((%s) event.getPayload())",
-                        annotatedMethod.getSimpleName(), eventType);
+                        annotatedMethod.getSimpleName(), eventTypes.get(0));
                 else inner.emitStatement("target.%s()",
                         annotatedMethod.getSimpleName());
                 inner.endMethod().endType();
 
-                writer.beginControlFlow("if (event.getPayload() instanceof %s)", eventType)
-                        .emitStatement("__handler.post(%s)", buffer.toString())
-                        .endControlFlow();
+                // For each type (can be multiple)
+                for (int i = 0; i < eventTypes.size(); i++) {
+                    String eventType = eventTypes.get(i);
+                    writer.beginControlFlow("%sif (event.getPayload() instanceof %s)", i != 0 ? "else " : "", eventType)
+                            .emitStatement("__handler.post(%s)", buffer.toString())
+                            .endControlFlow();
+                }
+
                 if (checkEmitter) writer.endControlFlow();
             }
 

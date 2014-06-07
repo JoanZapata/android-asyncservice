@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface OnMessage {
 
-    Class<?> value() default UseParameterType.class;
+    Class<?>[] value() default UseParameterType.class;
 
     Sender from() default Sender.THIS;
 

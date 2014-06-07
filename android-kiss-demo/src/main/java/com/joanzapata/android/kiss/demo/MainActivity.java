@@ -70,8 +70,13 @@ public class MainActivity extends Activity {
         but don't actually use it. So just use a no-arg method
         with the event type in the annotation.
      */
-    @OnMessage(UserEvent.class)
+    @OnMessage({UserEvent.class, UserEvent.class})
     public void onUserFetched() {
+        Log.i(TAG, "User fetched !");
+    }
+
+    @OnMessage(UserEvent.class)
+    public void onUserFetchedTest() {
         Log.i(TAG, "User fetched !");
     }
 
