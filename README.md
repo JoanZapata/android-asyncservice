@@ -1,4 +1,4 @@
-> #### This is a work in progress, do not use, but feel free to open issues if you want to suggest anything!
+> #### This is a work in progress, do not use in production
 
 ![Logo](https://raw.githubusercontent.com/JoanZapata/android-kiss/master/logo.png)
 
@@ -50,6 +50,8 @@ Kiss is hosted on Maven Central, just add this line to your gradle dependencies:
 ```groovy
 compile('com.joanzapata.android.kiss:android-kiss:0.0.+@aar') { transitive = true }
 ```
+
+> ```{ transitive = true }``` is required at the time of the writing because the android-plugin doesn't look for AAR transitive dependencies by default.
 
 # [Get started](https://github.com/JoanZapata/android-kiss/wiki)
 
