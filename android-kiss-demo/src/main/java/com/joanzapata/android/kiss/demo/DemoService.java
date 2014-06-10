@@ -23,7 +23,9 @@ import com.joanzapata.android.kiss.api.annotation.ErrorManagement;
 import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
 import com.joanzapata.android.kiss.api.annotation.Mapping;
+import com.joanzapata.android.kiss.api.annotation.Null;
 import com.joanzapata.android.kiss.api.annotation.Ui;
+import com.joanzapata.android.kiss.demo.event.NoUserEvent;
 import com.joanzapata.android.kiss.demo.event.UserEvent;
 
 @KissService
@@ -50,6 +52,7 @@ public class DemoService {
         By default, methods are executed in a background thread.
         No caching is involved.
     */
+    @Null(NoUserEvent.class)
     @ErrorManagement(@Mapping(on = 200, send = DummyErrorMessage.class))
     public UserEvent getUserAsync(Long id) {
         return new UserEvent(id, "Joan", 25);

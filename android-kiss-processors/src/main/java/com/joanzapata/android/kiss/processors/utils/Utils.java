@@ -25,6 +25,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -233,5 +234,24 @@ public class Utils {
     public static boolean hasTypeParameters(ProcessingEnvironment processingEnv, TypeMirror typeMirror) {
         TypeElement element = (TypeElement) processingEnv.getTypeUtils().asElement(typeMirror);
         return !element.getTypeParameters().isEmpty();
+    }
+
+    public static boolean isVoid(ExecutableElement method) {
+        return (method.getReturnType() instanceof NoType);
+    }
+
+    public static boolean hasPublicConstructor(TypeElement nullTypeElement) {
+        for (Element element : nullTypeElement.getEnclosedElements()) {
+            if (isConstructor(element) &&
+                    isPublic(element) &&
+                    ((ExecutableElement) element).getParameters().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isAbstract(TypeElement nullTypeElement) {
+        return nullTypeElement.getModifiers().contains(ABSTRACT);
     }
 }

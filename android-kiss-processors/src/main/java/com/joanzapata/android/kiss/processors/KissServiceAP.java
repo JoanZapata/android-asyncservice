@@ -23,6 +23,7 @@ import com.joanzapata.android.kiss.api.annotation.CacheThenCall;
 import com.joanzapata.android.kiss.api.annotation.ErrorManagement;
 import com.joanzapata.android.kiss.api.annotation.Init;
 import com.joanzapata.android.kiss.api.annotation.KissService;
+import com.joanzapata.android.kiss.api.annotation.Null;
 import com.joanzapata.android.kiss.api.annotation.Serial;
 import com.joanzapata.android.kiss.api.annotation.ThrowerParam;
 import com.joanzapata.android.kiss.api.annotation.Ui;
@@ -43,7 +44,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.NoType;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Serializable;
@@ -237,7 +238,7 @@ public class KissServiceAP extends AbstractProcessor {
         AnnotationMirror cachedAnnotation = getAnnotation(method, CacheThenCall.class);
         boolean isCached = cachedAnnotation != null;
         boolean isUiThread = getAnnotation(method, Ui.class) != null;
-        boolean hasResult = !(method.getReturnType() instanceof NoType);
+        boolean hasResult = !isVoid(method);
 
         if (isCached && !hasResult)
             logger.error(method, cachedAnnotation, "@CacheThenCall annotated method should not return void.");
@@ -271,6 +272,22 @@ public class KissServiceAP extends AbstractProcessor {
         // Define serial
         AnnotationMirror annotation = getAnnotation(method, Serial.class);
         String serial = annotation == null ? SERIAL_DEFAULT : (String) getAnnotationValue(annotation, "value");
+
+        // Define null management
+        AnnotationMirror nullAnnotation = getAnnotation(method, Null.class);
+        boolean isNullManaged = nullAnnotation != null;
+        if (isNullManaged && isVoid(method))
+            logger.error(method, "You can't use @Null on a method with no return type.");
+        TypeMirror nullClass = nullAnnotation == null ? null : (TypeMirror) getAnnotationValue(nullAnnotation, "value");
+
+        // Manage illegal args on @Null
+        if (isNullManaged) {
+            TypeElement nullTypeElement = processingEnv.getElementUtils().getTypeElement(nullClass.toString());
+            if (isAbstract(nullTypeElement))
+                logger.error(method, nullAnnotation, "value", "The null message type should not be abstract.");
+            if (!hasPublicConstructor(nullTypeElement))
+                logger.error(method, nullAnnotation, "value", "The null message type must have a public no-arg constructor.");
+        }
 
         if (isCached) {
             classWriter.emitField("String", "cacheKey", of(FINAL), parseCacheKeyValue(annotationCacheToParse));
@@ -311,7 +328,17 @@ public class KissServiceAP extends AbstractProcessor {
                     newElementName,
                     method.getSimpleName(),
                     formatParametersForCall(method))
-                    .emitStatement("if (__payload == null) return")
+                    .beginControlFlow("if (__payload == null)");
+
+            if (isNullManaged) {
+                inner.emitStatement("Message __message = new Message(new %s())", nullClass)
+                        .emitStatement("__message.setEmitter(emitter)")
+                        .emitStatement("Kiss.dispatch(__message)");
+            } else {
+                inner.emitStatement("return");
+            }
+
+            inner.endControlFlow()
                     .emitStatement("Message __message = new Message(__payload)")
                     .emitStatement("__message.setQuery(callId)")
                     .emitStatement("__message.setEmitter(emitter)");
@@ -363,7 +390,7 @@ public class KissServiceAP extends AbstractProcessor {
             }
         }
 
-        // Add valures of ErrorManagement annotation on the class
+        // Add values of ErrorManagement annotation on the class
         errorManagementAnnotation = getAnnotation(method.getEnclosingElement(), ErrorManagement.class);
         if (errorManagementAnnotation != null) {
             Iterable<AnnotationMirror> errorMappings = getAnnotationValue(errorManagementAnnotation, "value");
