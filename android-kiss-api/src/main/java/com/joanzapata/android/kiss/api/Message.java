@@ -55,7 +55,7 @@ public final class Message<T> implements Serializable {
     }
 
     public Object getEmitter() {
-        return emitter.get();
+        return emitter != null ? emitter.get() : null;
     }
 
     public void setEmitter(Object emitter) {
