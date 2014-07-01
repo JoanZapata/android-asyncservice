@@ -16,6 +16,7 @@
 package com.joanzapata.android.kiss.api.internal;
 
 import android.util.Log;
+import com.snappydb.SnappydbException;
 import com.snappydb.internal.DBImpl;
 
 import java.io.File;
@@ -44,7 +45,10 @@ public final class KissCache {
     private static boolean isReady() {
         if (dbImpl != null) return true;
         if (Kiss.context == null) return false;
+        return initialize();
+    }
 
+    private static boolean initialize() {
         try {
             // Make the path at which we'll store the DB
             String path = Kiss.context.getFilesDir().getAbsolutePath() + File.separator + "kissdb";
@@ -138,6 +142,15 @@ public final class KissCache {
             // Just ignore it
         }
 
+    }
+
+    public static void clear() {
+        try {
+            dbImpl.destroy();
+            initialize();
+        } catch (SnappydbException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static boolean contains(String key) {

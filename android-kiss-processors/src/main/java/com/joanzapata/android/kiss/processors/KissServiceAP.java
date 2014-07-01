@@ -186,6 +186,16 @@ public class KissServiceAP extends AbstractProcessor {
                             .emitStatement("Message message = new Message(payload)")
                             .emitStatement("message.setEmitter(emitter)")
                             .emitStatement("Kiss.dispatch(message)")
+                            .endMethod()
+                            .emitEmptyLine()
+                            .emitAnnotation(Override.class)
+                            .beginMethod("void", "clearCache", of(PUBLIC), "String", "key")
+                            .emitStatement("KissCache.remove(key)")
+                            .endMethod()
+                            .emitEmptyLine()
+                            .emitAnnotation(Override.class)
+                            .beginMethod("void", "clearCache", of(PUBLIC))
+                            .emitStatement("KissCache.clear()")
                             .endMethod();
                 }
 
