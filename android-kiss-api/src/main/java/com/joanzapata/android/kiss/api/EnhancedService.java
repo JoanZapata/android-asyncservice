@@ -49,4 +49,9 @@ public interface EnhancedService {
     /** Same as #getCached but for a list value. */
     <T extends Serializable> List<T> getCachedList(String key, Class<T> returnType);
 
+    /** Remove the value at the given key in the cache */
+    void clearCache(String key);
+
+    /** Remove all values in the cache */
+    void clearCache();
 }
