@@ -20,13 +20,12 @@ public class DemoService {
 }
 ```
 
-... then inject it anywhere and use it.
+... then use it.
 
 ```java
 service.getUser("joan");
 
-@OnMessage 
-public void onUser(User e) {
+@OnMessage public void onUser(User e) {
     // Runs on UI thread.
 }
 ```
