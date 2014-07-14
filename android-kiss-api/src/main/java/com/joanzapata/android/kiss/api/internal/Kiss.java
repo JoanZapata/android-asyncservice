@@ -17,9 +17,12 @@ package com.joanzapata.android.kiss.api.internal;
 
 import android.content.Context;
 import com.joanzapata.android.kiss.api.Message;
+import com.joanzapata.android.kiss.api.annotation.OnMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.joanzapata.android.kiss.api.annotation.OnMessage.Priority.*;
 
 @SuppressWarnings("unchecked")
 public final class Kiss {
@@ -92,17 +95,22 @@ public final class Kiss {
 
     /** Dispatch an event, application wide. */
     public static void dispatch(Message message) {
+        dispatch(message, FIRST);
+        dispatch(message, LAST);
+    }
 
+    private static void dispatch(Message message, OnMessage.Priority priority) {
         // Loop through injectors
         for (int i = 0; i < injectors.size(); i++) {
             Injector injector = injectors.get(i);
 
             // Dispatch event to it
-            boolean isValid = injector.dispatch(message);
+            boolean isValid = injector.dispatch(message, priority);
 
             // Removed it from the list if the injector target is no more valid
             if (!isValid) injectors.remove(i--);
         }
+
     }
 
 }

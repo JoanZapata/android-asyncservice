@@ -19,6 +19,8 @@ import com.joanzapata.android.kiss.api.Message;
 
 import java.lang.ref.WeakReference;
 
+import static com.joanzapata.android.kiss.api.annotation.OnMessage.Priority;
+
 public abstract class Injector<T> {
 
     protected WeakReference<T> target;
@@ -38,14 +40,14 @@ public abstract class Injector<T> {
      * false otherwise. In case of false, this object should
      * not be called anymore.
      */
-    boolean dispatch(Message event) {
+    boolean dispatch(Message event, Priority priority) {
         T targetObject = target.get();
         if (targetObject == null) return false;
-        dispatch(targetObject, event);
+        dispatch(targetObject, event, priority);
         return true;
     }
 
     protected abstract void inject(T injectable);
 
-    protected abstract void dispatch(T target, Message event);
+    protected abstract void dispatch(T target, Message event, Priority priority);
 }

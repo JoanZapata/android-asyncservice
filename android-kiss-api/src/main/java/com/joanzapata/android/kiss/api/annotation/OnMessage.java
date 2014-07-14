@@ -28,10 +28,16 @@ public @interface OnMessage {
 
     Sender from() default Sender.THIS;
 
+    Priority priority() default Priority.FIRST;
+
     /** This is the default value for event(), do not use it. */
     static final class UseParameterType {}
 
     static enum Sender {
         THIS, ALL
+    }
+
+    static enum Priority {
+        FIRST, LAST
     }
 }

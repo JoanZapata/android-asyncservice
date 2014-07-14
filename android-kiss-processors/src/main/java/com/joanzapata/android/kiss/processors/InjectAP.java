@@ -46,13 +46,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.joanzapata.android.kiss.api.annotation.OnMessage.Priority;
+import static com.joanzapata.android.kiss.api.annotation.OnMessage.Priority.*;
 import static com.joanzapata.android.kiss.api.annotation.OnMessage.Sender.ALL;
 import static com.joanzapata.android.kiss.processors.utils.Utils.*;
 import static java.util.Arrays.asList;
 import static java.util.EnumSet.of;
 import static javax.lang.model.element.Modifier.*;
 
-@SupportedAnnotationTypes({"com.joanzapata.android.kiss.api.annotation.Result", "com.joanzapata.android.kiss.api.annotation.InjectService"})
+@SupportedAnnotationTypes({"com.joanzapata.android.kiss.api.annotation.OnMessage", "com.joanzapata.android.kiss.api.annotation.InjectService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class InjectAP extends AbstractProcessor {
 
@@ -104,8 +106,10 @@ public class InjectAP extends AbstractProcessor {
                     Set.class,
                     HashSet.class)
                     .emitImports(
+                            "com.joanzapata.android.kiss.api.annotation.OnMessage.Priority",
                             "android.os.Handler",
-                            "android.os.Looper");
+                            "android.os.Looper")
+                    .emitStaticImports("com.joanzapata.android.kiss.api.annotation.OnMessage.Priority.*");
 
             // Generates "public final class XXXInjector extends Injector<XXX>"
             writer.emitEmptyLine()
@@ -137,17 +141,18 @@ public class InjectAP extends AbstractProcessor {
 
             // Generates "protected void dispatch(XXX target, Message event)"
             writer.emitAnnotation(Override.class)
-                    .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + Message.class.getSimpleName(), "event");
+                    .beginMethod("void", "dispatch", of(PROTECTED), "final " + simpleName, "target", "final " + Message.class.getSimpleName(), "event", Priority.class.getSimpleName(), "priority");
 
             // Once the user has received a "remote" result, make sure no cache is sent anymore
             writer.emitField("boolean", "__hasBeenReceivedAlready", of(FINAL), "event.getQuery() != null && __receivedFinalResponses.contains(event.getQuery())")
                     .emitStatement("if (event.isCached() && __hasBeenReceivedAlready) return")
-                    .emitStatement("if (!__hasBeenReceivedAlready && !event.isCached()) __receivedFinalResponses.add(event.getQuery())");
+                    .emitStatement("if (!__hasBeenReceivedAlready && !event.isCached() && priority == LAST) __receivedFinalResponses.add(event.getQuery())");
 
             // Here, dispatch events to methods
             List<Element> responseReceivers = findElementsAnnotatedWith(enclosingElement, OnMessage.class);
             for (Element responseReceiver : responseReceivers) {
                 ExecutableElement annotatedMethod = (ExecutableElement) responseReceiver;
+                AnnotationMirror annotationMirror = getAnnotation(annotatedMethod, OnMessage.class);
                 List<? extends VariableElement> parameters = annotatedMethod.getParameters();
 
                 if (parameters.size() > 1)
@@ -163,7 +168,6 @@ public class InjectAP extends AbstractProcessor {
                         logger.error(parameters.get(0), "You can't receive typed parameters in @OnMessage annotated methods");
 
                 } else {
-                    AnnotationMirror annotationMirror = getAnnotation(annotatedMethod, OnMessage.class);
                     List<AnnotationValue> parameterTypeClasses = getAnnotationValue(annotationMirror, "value");
 
                     // Validate each parameter type given in the annotation
@@ -180,8 +184,13 @@ public class InjectAP extends AbstractProcessor {
                 }
 
                 // Define whether we should check emitter or not dependeing on the annotation value
-                VariableElement from = getAnnotationValue(getAnnotation(annotatedMethod, OnMessage.class), "from");
+                VariableElement from = getAnnotationValue(annotationMirror, "from");
                 boolean checkEmitter = !ALL.toString().equals("" + from);
+
+                // Check the priority of the method
+                VariableElement priorityValue = getAnnotationValue(annotationMirror, "priority");
+                Priority priority = !LAST.toString().equals("" + priorityValue) ? FIRST : LAST;
+                writer.beginControlFlow("if (priority == %s)", priority);
 
                 // Write the code to call the user method
                 if (checkEmitter) writer.beginControlFlow("if (event.getEmitter() == getTarget())");
@@ -208,6 +217,7 @@ public class InjectAP extends AbstractProcessor {
                 }
 
                 if (checkEmitter) writer.endControlFlow();
+                writer.endControlFlow();
             }
 
             // End of inject();
