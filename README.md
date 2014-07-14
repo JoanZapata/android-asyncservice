@@ -14,7 +14,7 @@ public class DemoService {
 
     public User getUser(String name) {
         // Runs asynchronously.
-        return ...;
+        return …;
     }
 
 }
@@ -23,7 +23,9 @@ public class DemoService {
 ... then use it.
 
 ```java
-service.getUser("joan");
+… {
+    service.getUser("joan");
+}
 
 @OnMessage void onUser(User e) {
     // Runs on UI thread.
