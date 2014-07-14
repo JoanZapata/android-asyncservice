@@ -25,7 +25,7 @@ public class DemoService {
 ```java
 service.getUser("joan");
 
-@OnMessage public void onUser(User e) {
+@OnMessage void onUser(User e) {
     // Runs on UI thread.
 }
 ```
