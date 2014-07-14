@@ -1,5 +1,5 @@
 language: android
 android:
   components:
-    - build-tools-19.1
+    - build-tools-19.0.3
 script: "travis_retry ./gradlew build check"

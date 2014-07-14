@@ -13,33 +13,32 @@ android {
         targetSdkVersion 19
     }
     compileSdkVersion 19
-    buildToolsVersion "19.1.0"
+    buildToolsVersion "19.0.3"
     lintOptions.abortOnError false
 }
 
-//task javadocDebug(type: Javadoc) {
-//    description = "Generates javadoc for build debug"
-//    destinationDir = new File(destinationDir, "javadocDebug")
-//    source = files(android.libraryVariants.debug.javaCompile.source)
-////    android.plugin.metaClass.methods.each { println it.name }
-//    classpath = files(android.plugin.getLocalJarFileList(), android.libraryVariants.debug.javaCompile.classpath)
-//    exclude '**/R.html', '**/R.*.html'
-//}
-//
-//task javadocJar(type: Jar, dependsOn: javadocDebug) {
-//    classifier = 'javadoc'
-//    from javadocDebug.destinationDir
-//}
+task javadocDebug(type: Javadoc) {
+    description = "Generates javadoc for build debug"
+    destinationDir = new File(destinationDir, "javadocDebug")
+    source = files(android.libraryVariants.debug.javaCompile.source)
+    classpath = files(android.plugin.runtimeJarList, android.libraryVariants.debug.javaCompile.classpath)
+    exclude '**/R.html', '**/R.*.html'
+}
 
-//task sourcesJar(type: Jar) {
-//    from android.sourceSets.main.allSource
-//    classifier = 'sources'
-//}
+task javadocJar(type: Jar, dependsOn: javadocDebug) {
+    classifier = 'javadoc'
+    from javadocDebug.destinationDir
+}
 
-//artifacts {
-//    archives javadocJar
-//    archives sourcesJar
-//}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
 
 
 uploadArchives {
