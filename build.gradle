@@ -22,7 +22,7 @@ allprojects {
     targetCompatibility = 1.6
 
     group = 'com.joanzapata.android.kiss'
-    version = '0.0.2-SNAPSHOT'
+    version = '0.0.2'
 
     license {
         header rootProject.file('LICENSE')
