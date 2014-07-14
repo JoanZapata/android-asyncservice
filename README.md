@@ -1,5 +1,3 @@
-> #### This is a work in progress, do not use in production
-
 ![Logo](https://raw.githubusercontent.com/JoanZapata/android-kiss/master/logo.png)
 
 # Motivation
@@ -7,6 +5,8 @@
 **Kiss** is born from an [article](http://blog.joanzapata.com/robust-architecture-for-an-android-app/) I wrote a few weeks ago, which gave me a lot of feedbacks and interesting comments. **Kiss** manages threading and caching transparently in your Android app. It's an alternative to [AsyncTasks](http://developer.android.com/reference/android/os/AsyncTask.html), [Loaders](http://developer.android.com/guide/components/loaders.html), or more advanced libs like [RxJava](https://github.com/Netflix/RxJava), [Robospice](https://github.com/stephanenicolas/robospice), [Groundy](https://github.com/telly/groundy),… but **Kiss** focuses on keeping your code short and simple! Its name means *keep it simple, stupid*, an old [design principle](http://en.wikipedia.org/wiki/KISS_principle) invented in the 60s.
 
 # Sample
+
+Write your asynchronous service...
 
 ```java 
 @KissService
@@ -20,26 +20,14 @@ public class DemoService {
 }
 ```
 
+... then inject it anywhere and use it.
+
 ```java
-public class DemoActivity extends Activity {
+service.getUser("joan");
 
-    @InjectService 
-    public DemoService service;
-
-    @Override 
-    protected void onCreate(Bundle savedInstanceState) {
-        ...
-        Kiss.inject(this);
-        
-        // Returns nothing directly
-        service.getUser("joan");
-    }
-
-    @OnMessage 
-    public void onUser(User e) {
-        // Runs on UI thread.
-    }
-
+@OnMessage 
+public void onUser(User e) {
+    // Runs on UI thread.
 }
 ```
 
@@ -48,12 +36,12 @@ public class DemoActivity extends Activity {
 Kiss is hosted on Maven Central, just add this line to your gradle dependencies:
 
 ```groovy
-compile('com.joanzapata.android.kiss:android-kiss:0.0.+@aar') { transitive = true }
+compile('com.joanzapata.android.kiss:android-kiss:0.0.2@aar') { transitive = true }
 ```
 
 > ```{ transitive = true }``` is required at the time of the writing because the android-plugin doesn't look for AAR transitive dependencies by default.
 
-# [Get started](https://github.com/JoanZapata/android-kiss/wiki)
+# [Learn more](https://github.com/JoanZapata/android-kiss/wiki)
 
 ## License
 
