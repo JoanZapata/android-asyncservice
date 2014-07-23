@@ -343,7 +343,8 @@ public class KissServiceAP extends AbstractProcessor {
             if (isNullManaged) {
                 inner.emitStatement("Message __message = new Message(new %s())", nullClass)
                         .emitStatement("__message.setEmitter(emitter)")
-                        .emitStatement("Kiss.dispatch(__message)");
+                        .emitStatement("Kiss.dispatch(__message)")
+                        .emitStatement("return");
             } else {
                 inner.emitStatement("return");
             }
