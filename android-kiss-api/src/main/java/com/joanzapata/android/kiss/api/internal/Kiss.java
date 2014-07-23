@@ -62,6 +62,21 @@ public final class Kiss {
     }
 
     /**
+     * Prevent the given object to receive any
+     * more message in its @OnMessage methods,
+     * unless inject() is called again.
+     */
+    public static void unregister(Object object) {
+        Injector injectorToRemove = null;
+        for (Injector injector : injectors)
+            if (injector.getTarget() == object)
+                injectorToRemove = injector;
+
+        if (injectorToRemove != null)
+            injectors.remove(injectorToRemove);
+    }
+
+    /**
      * If the given object contains an Android context, extract
      * the application context and retain it statically.
      */
