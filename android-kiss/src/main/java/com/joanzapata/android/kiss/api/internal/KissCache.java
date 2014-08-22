@@ -42,7 +42,7 @@ public final class KissCache {
     // Prevent instantiation
     private KissCache() {}
 
-    private static boolean isReady() {
+    private synchronized static boolean isReady() {
         if (dbImpl != null) return true;
         if (Kiss.context == null) return false;
         return initialize();
