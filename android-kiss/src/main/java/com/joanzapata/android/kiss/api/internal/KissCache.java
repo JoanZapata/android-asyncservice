@@ -144,7 +144,7 @@ public final class KissCache {
 
     }
 
-    public static void clear() {
+    public synchronized static void clear() {
         try {
             dbImpl.destroy();
             initialize();
