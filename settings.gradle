@@ -1,1 +1,1 @@
-include 'android-kiss-api', 'android-kiss-processors', 'android-kiss', 'android-kiss-demo'
+include 'android-asyncservice-api', 'android-asyncservice-processors', 'android-asyncservice', 'android-asyncservice-demo'

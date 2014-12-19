@@ -1,0 +1,84 @@
+apply plugin: 'android-library'
+apply plugin: 'android-maven'
+
+dependencies {
+    compile 'com.snappydb:snappydb-api:0.2.0'
+    compile project(':android-asyncservice-api')
+    compile project(':android-asyncservice-processors')
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 19
+    }
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+    lintOptions.abortOnError false
+}
+
+task javadocDebug(type: Javadoc) {
+    description = "Generates javadoc for build debug"
+    destinationDir = new File(destinationDir, "javadocDebug")
+    source = files(android.libraryVariants.debug.javaCompile.source)
+    classpath = files(android.plugin.runtimeJarList, android.libraryVariants.debug.javaCompile.classpath)
+    exclude '**/R.html', '**/R.*.html'
+}
+
+task javadocJar(type: Jar, dependsOn: javadocDebug) {
+    classifier = 'javadoc'
+    from javadocDebug.destinationDir
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            conf2ScopeMappings.addMapping(10, configurations.compile, 'compile')
+
+            pom.project {
+                name 'android-asyncservice'
+                packaging 'aar'
+                description 'AsyncService uses annotations to shorten the code to start asynchronous long running tasks and cache results'
+                url 'https://github.com/JoanZapata/android-asyncservice'
+
+                scm {
+                    url 'scm:git@github.com:JoanZapata/android-asyncservice.git'
+                    connection 'scm:git@github.com:JoanZapata/android-asyncservice.git'
+                    developerConnection 'scm:git@github.com:JoanZapata/android-asyncservice.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'joanzapata'
+                        name 'Joan Zapata'
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,73 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main { compileClasspath += configurations.provided }
+}
+
+dependencies {
+    provided "com.google.android:android:4.1.1.4"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            pom.project {
+                name 'android-asyncservice-api'
+                packaging 'jar'
+                description 'AsyncService uses annotations to shorten the code to start asynchronous long running tasks and cache results'
+                url 'https://github.com/JoanZapata/android-asyncservice'
+
+                scm {
+                    url 'scm:git@github.com:JoanZapata/android-asyncservice.git'
+                    connection 'scm:git@github.com:JoanZapata/android-asyncservice.git'
+                    developerConnection 'scm:git@github.com:JoanZapata/android-asyncservice.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'joanzapata'
+                        name 'Joan Zapata'
+                    }
+                }
+            }
+        }
+    }
+}
