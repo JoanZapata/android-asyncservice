@@ -22,7 +22,7 @@ allprojects {
     targetCompatibility = 1.6
 
     group = 'com.joanzapata.android.asyncservice'
-    version = '0.0.5'
+    version = '0.0.6-SNAPSHOT'
 
     license {
         header rootProject.file('LICENSE')

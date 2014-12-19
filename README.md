@@ -37,7 +37,7 @@ public class DemoService {
 AsyncService is hosted on Maven Central, just add this line to your gradle dependencies:
 
 ```groovy
-compile('com.joanzapata.android.asyncservice:android-asyncservice:0.0.2@aar') { transitive = true }
+compile('com.joanzapata.android.asyncservice:android-asyncservice:0.0.5@aar') { transitive = true }
 ```
 
 > ```{ transitive = true }``` is required at the time of the writing because the android-plugin doesn't look for AAR transitive dependencies by default.
