@@ -62,4 +62,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-[![Build Status](https://travis-ci.org/JoanZapata/android-kiss.svg?branch=master)](https://travis-ci.org/JoanZapata/android-kiss)
+[![Build Status](https://travis-ci.org/JoanZapata/android-asyncservice.svg?branch=master)](https://travis-ci.org/JoanZapata/android-asyncservice)
