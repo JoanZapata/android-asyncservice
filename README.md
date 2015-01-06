@@ -1,3 +1,5 @@
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-AsyncService-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1330)
+
 ![Logo](https://raw.githubusercontent.com/JoanZapata/android-asyncservice/master/logo.png)
 
 # Motivation
