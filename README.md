@@ -46,6 +46,23 @@ compile('com.joanzapata.android.asyncservice:android-asyncservice:0.0.5@aar') { 
 
 # [Learn more](https://github.com/JoanZapata/android-asyncservice/wiki)
 
+## Proguard
+
+In case you use Proguard, you'll have to add these entries to your configuration file.
+
+```
+-dontwarn com.joanzapata.android.asyncservice.**
+-keep @com.joanzapata.android.asyncservice.api.annotation.AsyncService class *
+-keep class **Injector
+-keepnames class **Injector
+-keepnames class * {
+    @com.joanzapata.android.asyncservice.api.annotation.InjectService *;
+}
+-keepnames class * {
+    @com.joanzapata.android.asyncservice.api.annotation.OnMessage *;
+}
+```
+
 ## License
 
 ```
