@@ -61,6 +61,7 @@ In case you use Proguard, you'll have to add these entries to your configuration
 -keepnames class * {
     @com.joanzapata.android.asyncservice.api.annotation.OnMessage *;
 }
+-keep class com.esotericsoftware.kryo.** {*;}
 ```
 
 ## License
