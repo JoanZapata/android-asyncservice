@@ -233,7 +233,7 @@ public class Utils {
     /** Return true if the type has some generic parameter */
     public static boolean hasTypeParameters(ProcessingEnvironment processingEnv, TypeMirror typeMirror) {
         TypeElement element = (TypeElement) processingEnv.getTypeUtils().asElement(typeMirror);
-        return !element.getTypeParameters().isEmpty();
+        return element != null && !element.getTypeParameters().isEmpty();
     }
 
     public static boolean isVoid(ExecutableElement method) {
